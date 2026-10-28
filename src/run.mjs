@@ -36,6 +36,7 @@ import { buildEntityIndex, clusterItems } from './lib/cluster.mjs';
 import { createEmbedder, cosine } from './lib/embed.mjs';
 import { createTranslator } from './lib/translate.mjs';
 import { renderHtml, findBannedWords } from './lib/render.mjs';
+import { resolveArticleUrls } from './lib/links-new.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 
@@ -49,6 +50,7 @@ function parseArgs(argv) {
     embed: 'stub',
     translate: 'stub',
     limit: LIMIT_PER_COUNTRY,
+    linkConcurrency: 4,
     quiet: false,
   };
   for (let i = 2; i < argv.length; i += 1) {
@@ -167,20 +169,55 @@ function prepareItems(country, feed, opts) {
   return buildItems(country, parsed.items, opts);
 }
 
-/** 链接：能离线解就解，解不出按 D25 标记为不可点。 */
-function resolveLinks(items, opts) {
+/**
+ * 只解析要展示的条目（<= 45 条）。全量解析既慢又没必要——
+ * 页面上不出现的东西，没人会点。
+ *
+ * 解不出来就保持不可点（D25）：url 留着 Google 链接，但 linkDecoded=false，
+ * 渲染层不会把它变成 <a>。宁可没链接，也不把用户送进 Google 的中转页。
+ */
+async function resolveDisplayedLinks(perCountry, opts) {
+  const displayed = perCountry.flatMap((entry) => entry.displayItems || []);
+  if (displayed.length === 0) return;
+
+  for (const item of displayed) {
+    item.url = null;
+    item.linkDecoded = false;
+  }
+
   if (opts.offline) {
-    for (const item of items) {
-      item.url = null;
-      item.linkDecoded = false;
+    for (const item of displayed) {
+      const decoded =
+        item.googleUrl && item.linkForm === LINK_FORM.OLD_BASE64 ? tryDecodeOldLink(item.googleUrl) : null;
+      item.url = decoded || item.googleUrl || null;
+      item.linkDecoded = Boolean(decoded);
     }
     return;
   }
-  for (const item of items) {
-    const decoded = item.googleUrl && item.linkForm === LINK_FORM.OLD_BASE64 ? tryDecodeOldLink(item.googleUrl) : null;
-    item.url = decoded || item.googleUrl || null;
-    item.linkDecoded = Boolean(decoded);
+
+  let resolved = new Map();
+  try {
+    resolved = await resolveArticleUrls(
+      displayed.filter((item) => item.googleUrl).map((item) => ({ link: item.googleUrl })),
+      { mode: 'single', concurrency: opts.linkConcurrency ?? 4 },
+    );
+  } catch (error) {
+    log(`链接解析整体失败（${error.message}）——本节全部不提供跳转`);
   }
+
+  for (const item of displayed) {
+    const hit = item.googleUrl ? resolved.get(item.googleUrl) : null;
+    if (hit && hit.url) {
+      item.url = hit.url;
+      item.linkDecoded = true;
+    } else {
+      item.url = item.googleUrl || null;
+      item.linkDecoded = false;
+    }
+  }
+
+  const ok = displayed.filter((item) => item.linkDecoded).length;
+  log(`链接解析：${ok}/${displayed.length} 条拿到原文地址`);
 }
 
 async function main() {
@@ -230,8 +267,7 @@ async function main() {
   const allItems = perCountry.flatMap((entry) => entry.items);
   log(`\n合计 ${allItems.length} 条`);
 
-  // 链接：离线解码（纯本地），解不出就保持不可点（D25）
-  resolveLinks(allItems, opts);
+
 
   // ---------------------------------------------------------------- 向量化
   const embedder = await createEmbedder({
@@ -320,6 +356,9 @@ async function main() {
     entry.displayItems = picked;
     for (const item of entry.displayItems) translateTargets.push(item);
   }
+
+  // 展示项定下来之后才解析链接：目标只有这几十条
+  await resolveDisplayedLinks(perCountry, opts);
   if (consensusCandidate) translateTargets.push({ titleOriginal: consensusCandidate.label, lang: 'en' });
 
   const translationResult =

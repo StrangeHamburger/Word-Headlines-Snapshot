@@ -2,16 +2,18 @@
 node_modules/
 .cache/
 
-# 运行时产物
+# 运行时产物（临时/调试用，不入库）
 data/probe/
 data/tmp/
 data/cache/
 data/review/
 data/snapshots/
 data/state/
-data/latest.json
-data/status.json
 dist/
+
+# 注意：data/latest.json、data/previous.json、data/index.html、data/status.json
+# 是**产品本身**，必须入库——Cloudflare Pages 直接发布 data/ 目录。
+# 不要往这里加忽略规则。
 
 # 筛查的本地规则（含地域性词条，不入库）
 src/config/sensitive.local.json

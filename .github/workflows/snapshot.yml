@@ -1,0 +1,101 @@
+name: snapshot
+
+# 每天两次：06:00 UTC = 14:00 北京，16:00 UTC = 00:00 北京。
+# 两个时点分别在欧洲晚间、亚洲早晨，头条差异最大。
+on:
+  schedule:
+    - cron: '0 6 * * *'
+    - cron: '0 16 * * *'
+  workflow_dispatch:
+    inputs:
+      translate:
+        description: '翻译 provider（留空表示不翻译）'
+        required: false
+        default: 'stub'
+      limit:
+        description: '每国保留条数'
+        required: false
+        default: '15'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: snapshot
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      # 模型 120 MB，缓存住能省掉每次 1-2 分钟下载
+      - name: 缓存 embedding 模型
+        uses: actions/cache@v4
+        with:
+          path: .cache
+          key: e5-multilingual-small-q8-v1
+
+      - name: 安装依赖
+        run: npm ci
+
+      - name: 单元测试
+        run: npm test
+
+      - name: 生成快照
+        env:
+          HF_ENDPOINT: ${{ vars.HF_ENDPOINT }}
+          DEEPL_API_KEY: ${{ secrets.DEEPL_API_KEY }}
+          CF_WORKERS_AI_TOKEN: ${{ secrets.CF_WORKERS_AI_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+        run: |
+          node src/run.mjs \
+            --embed e5 \
+            --translate "${{ inputs.translate || 'stub' }}" \
+            --limit "${{ inputs.limit || '15' }}"
+
+      - name: 摘要
+        if: always()
+        run: |
+          if [ -f data/latest.json ]; then
+            node -e '
+              const s = require("./data/latest.json");
+              const t = s.stats || {};
+              const c = s.topConsensus;
+              const lines = [
+                "### 快照 " + s.slot,
+                "",
+                "| 指标 | 值 |",
+                "|---|---|",
+                "| 有效国家 | " + t.countriesValid + " / " + t.countriesConfigured + " |",
+                "| 条目 | " + t.itemsAfterDedupe + " |",
+                "| 簇 | " + t.clusters + " |",
+                "| 降级 | " + (t.degraded ? (t.degradedReasons || []).join(", ") : "否") + " |",
+                "| 共识事件 | " + (c ? c.reportingCountries + " 国：" + (c.labelZh || c.label) : "无") + " |",
+              ];
+              require("fs").appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join("\n") + "\n");
+            '
+          fi
+
+      - name: 提交快照
+        if: success()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data
+          if git diff --cached --quiet; then
+            echo "内容无变化，跳过提交"
+            exit 0
+          fi
+          git commit -m "chore(snapshot): $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push

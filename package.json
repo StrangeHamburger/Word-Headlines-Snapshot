@@ -1,24 +1,25 @@
 {
-    "name":  "world-headlines-snapshot",
-    "version":  "0.1.0",
-    "private":  true,
-    "type":  "module",
-    "description":  "15 鍥藉ご鏉℃牱鏈殑瀵规瘮蹇収锛氳嚜鍔ㄦ爣娉ㄥ叡璇嗐€佹湰鏈熸湭鍖呭惈銆佽绋嬪亸绉讳笌鏃堕棿鍙樺寲",
-    "engines":  {
-                    "node":  "\u003e=20"
-                },
-    "scripts":  {
-                    "probe":  "node src/scripts/probe-feeds.mjs",
-                    "pairs":  "node src/scripts/make-pairs.mjs",
-                    "calibrate":  "node src/scripts/calibrate.mjs",
-                    "screen":  "node src/scripts/screen-preview.mjs",
-                    "screen:check":  "node src/scripts/screen-preview.mjs --check",
-                    "test":  "node --test tests/unit",
-                    "run":  "node src/run.mjs",
-                    "diag":  "node src/scripts/diag-sim.mjs",
-                    "links":  "node src/scripts/check-links.mjs"
-                },
-    "optionalDependencies":  {
-                                 "@huggingface/transformers":  "^3.8.1"
-                             }
+  "name": "world-headlines-snapshot",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "15 国头条样本的对比快照：自动标注共识、本期未包含、议程偏移与时间变化",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "probe": "node src/scripts/probe-feeds.mjs",
+    "probe:links": "node src/scripts/probe-links.mjs",
+    "pairs": "node src/scripts/make-pairs.mjs",
+    "calibrate": "node src/scripts/calibrate.mjs",
+    "screen": "node src/scripts/screen-preview.mjs",
+    "screen:check": "node src/scripts/screen-preview.mjs --check",
+    "test": "node --test tests/unit",
+    "run": "node src/run.mjs",
+    "diag": "node src/scripts/diag-sim.mjs",
+    "links": "node src/scripts/check-links.mjs"
+  },
+  "optionalDependencies": {
+    "@huggingface/transformers": "^3.8.1"
+  }
 }
