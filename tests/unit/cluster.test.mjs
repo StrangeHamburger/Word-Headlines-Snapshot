@@ -90,12 +90,24 @@ test('条件权重归一化：sim 恒为可用信号的加权平均', () => {
   assert.equal(isMatch(signals), true);
 });
 
-test('门槛：实体或数字达到半数可绕过低余弦', () => {
-  const a = { entities: new Set(['nato', 'eu']), numbers: new Set(['7']) };
-  const b = { entities: new Set(['nato']), numbers: new Set(['7']) };
-  const signals = scorePair(0.3, a, b);
-  assert.equal(signals.entityScore, 1); // 1 / min(2,1)
-  assert.equal(signals.numberScore, 1);
+test('门槛：共享实体仍要求余弦不低于 floor', () => {
+  const a = { entities: new Set(['nato', 'eu']), numbers: new Set() };
+  const b = { entities: new Set(['nato']), numbers: new Set() };
+  assert.equal(scorePair(0.3, a, b).gate, false, 'cos 0.3 再共享实体也不放行');
+  assert.equal(scorePair(0.85, a, b).gate, true, 'cos 够高时实体才起作用');
+});
+
+test('门槛：单个共享数字不足以放行（"30 死" vs "判刑 30 年"）', () => {
+  const a = { entities: new Set(), numbers: new Set(['30']) };
+  const b = { entities: new Set(), numbers: new Set(['30']) };
+  assert.equal(scorePair(0.81, a, b).numberScore, 1, '分数照样是 1');
+  assert.equal(scorePair(0.81, a, b).gate, false, '但只有一个数字，不能放行');
+});
+
+test('门槛：两个不重复数字同时吻合才放行', () => {
+  const a = { entities: new Set(), numbers: new Set(['30', '124']) };
+  const b = { entities: new Set(), numbers: new Set(['30', '124']) };
+  const signals = scorePair(0.7, a, b);
   assert.equal(signals.gate, true);
 });
 
@@ -107,9 +119,9 @@ test('年份不作为"共享数字"的依据，避免同一年被误连', () => 
   assert.equal(signals.gate, false, 'cos 0.5 < 0.86 且没有有效实体/数字');
 });
 
-test('真实数字（非年份）仍能触发门槛', () => {
-  const a = { entities: new Set(), numbers: new Set(['2026', '12']) };
-  const b = { entities: new Set(), numbers: new Set(['2026', '12']) };
+test('两个真实数字吻合时仍能触发门槛（年份不算）', () => {
+  const a = { entities: new Set(), numbers: new Set(['2026', '12', '7']) };
+  const b = { entities: new Set(), numbers: new Set(['2026', '12', '7']) };
   const signals = scorePair(0.5, a, b);
   assert.equal(signals.numberScore, 1);
   assert.equal(signals.gate, true);
@@ -164,7 +176,7 @@ test('聚类：同国多条只计 1 次，但仍留在簇成员里', () => {
 
   assert.equal(clusters.length, 1);
   const cluster = clusters[0];
-  assert.equal(cluster.members.length, 3);
+  assert.equal(cluster.members.length, 3, '同国近似重复可以进同一簇');
   assert.equal(cluster.countries.length, 2, '同国去重后只有 2 个国家');
   assert.equal(cluster.counted.length, 2, '每个国家只计 1 条');
 });
@@ -179,7 +191,8 @@ test('聚类：传递链导致凝聚力偏低时标 lowConfidence（§8.4 硬约
   const cosine = tableCosine({ 'a|b': 0.9, 'b|c': 0.9, 'a|c': 0.2 });
   const entitiesOf = () => new Set(['nato']);
 
-  const clusters = clusterItems(items, { cosine, entitiesOf });
+  // 单链会把这个链接串成一簇，cohesion 被拉低 —— 这正是它危险的地方
+  const clusters = clusterItems(items, { cosine, entitiesOf, linkage: 'single' });
   assert.equal(clusters.length, 1);
   const cluster = clusters[0];
   assert.equal(cluster.members.length, 3);
@@ -198,19 +211,19 @@ test('聚类：单条簇不参与共识', () => {
   assert.equal(consensusCounts(clusters).length, 0);
 });
 
-test('聚类：同国条目之间不参与跨语言匹配', () => {
+test('默认 star 聚类：传递链不再把 A≁C 的三条并成一簇', () => {
   const items = [
-    { id: 'a', country: 'US', lang: 'en', title: 'Same story' },
-    { id: 'b', country: 'US', lang: 'en', title: 'Same story' },
+    { id: 'a', country: 'US', lang: 'en', title: 'NATO summit begins' },
+    { id: 'b', country: 'DE', lang: 'de', title: 'NATO Gipfel beginnt' },
+    { id: 'c', country: 'JP', lang: 'ja', title: 'NATO 首脳会議' },
   ];
-  const calls = [];
-  const cosine = (x, y) => {
-    calls.push([x.id, y.id]);
-    return 1;
-  };
-  const clusters = clusterItems(items, { cosine, entitiesOf: () => new Set() });
-  assert.equal(calls.length, 0, '同国对不应触发余弦计算');
-  assert.equal(clusters.length, 2);
+  // a~b、b~c 各自够像，但 a 与 c 不像
+  const cosine = tableCosine({ 'a|b': 0.9, 'b|c': 0.9, 'a|c': 0.2 });
+  const entitiesOf = () => new Set(['nato']);
+
+  const clusters = clusterItems(items, { cosine, entitiesOf });
+  assert.equal(clusters.length, 2, 'c 不应被 b 拖进 a 的簇');
+  assert.equal(clusters[0].members.length, 2);
 });
 
 test('consensusCounts 只输出 ≥2 国的簇，并带凝聚力', () => {

@@ -1953,3 +1953,22 @@ v1.0 列出的 7 个阻塞项**已全部决议**，实现不再等待答复。�
 **改动**：新增 `src/lib/links-new.mjs`、`src/scripts/probe-links.mjs`、`.github/workflows/probe-links.yml`、`src/scripts/check-links.mjs`；`src/lib/rss.mjs` 增 `extractInnerToken`；`src/scripts/probe-feeds.mjs` 报告改为四态（明文/包装 AU/直接 AU/无法识别）。
 
 **残留风险**：Google 随时可能再改。`probe-links.yml` 保留为回归探测，**每次发布前跑一次，成功率 <95% 就按 D25 关掉链接**。
+### 23.7 v1.6：聚类算法修正（实测驱动）
+
+跑通「300 条真实数据 → e5 → 聚类 → 渲染」后，用 `src/scripts/diag-sim.mjs` 逐对测量，发现三处必须改，全部与阈值无关：
+
+| 问题 | 证据 | 修正 |
+|---|---|---|
+| 单链聚类传递链 | 300 条串出 **108 条巨簇**，等于宣称"20 国都在报同一件事" | 改**领导者聚类**：每条只与簇代表比，够像才加入。传递链被结构性挡住 |
+| 单个数字就能放行 | "30 死" ↔ "判刑 30 年"：cos 0.813、numberScore 1.0、sim 0.830 → 合并 | `numberScore` 放行需**≥2 个不重复的有效数字**（`GATE_NUMBER_MIN_SHARED=2`） |
+| 共享实体无视余弦 | 两条无关的特朗普新闻 cos 0.83，仅因共享 Trump 就合并 | 实体放行需**余弦 ≥ 0.80**（`GATE_ENTITY_COS`） |
+
+修正后最大簇 108 → 17，且那 17 条确实是同一事件（以色列大选，英葡西德法意全覆盖）。
+
+**仍未解决的**（必须靠标定，不能靠猜）：
+
+- `T_MATCH=0.80` 下同语种同话题标题仍会过度合并（如"巴西大选周边"合成一簇）。
+- 跨语言真对可能低到 0.80（西班牙火车事故的法语版 sim 仅 0.804），与假对（0.803–0.83）**区间重叠**——说明单靠阈值分离不了，可能需要更强的模型或 reranker。
+- 这是 §8 的核心质量风险，**必须用 `tests/fixtures/labeled-pairs.jsonl` 定量评估**。
+
+新增工具：`src/scripts/diag-sim.mjs`（逐对打印 cos / entity / number / sim / gate，回答"是模型觉得像还是门槛太松"）、`src/run.mjs --from-raw`（无需网络复现任意一次真实快照）。

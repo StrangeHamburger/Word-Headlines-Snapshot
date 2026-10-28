@@ -18,6 +18,8 @@ import {
   GATE_COS,
   GATE_ENTITY,
   GATE_NUMBER,
+  GATE_ENTITY_COS,
+  GATE_NUMBER_MIN_SHARED,
   PREFILTER_COS,
   COHESION_MIN,
   MIN_CLUSTER_COUNTRIES,
@@ -132,6 +134,8 @@ export function scorePair(cosine, a, b, options = {}) {
   const gateCos = options.gateCos ?? GATE_COS;
   const gateEntity = options.gateEntity ?? GATE_ENTITY;
   const gateNumber = options.gateNumber ?? GATE_NUMBER;
+  const gateEntityCos = options.gateEntityCos ?? GATE_ENTITY_COS;
+  const gateNumberMinShared = options.gateNumberMinShared ?? GATE_NUMBER_MIN_SHARED;
 
   const bothEntities = a.entities.size > 0 && b.entities.size > 0;
   const bothNumbers = a.numbers.size > 0 && b.numbers.size > 0;
@@ -173,7 +177,12 @@ export function scorePair(cosine, a, b, options = {}) {
   }
 
   const sim = weight > 0 ? weighted / weight : 0;
-  const gate = cosine >= gateCos || (bothEntities && entityScore >= gateEntity) || (bothNumbers && numberScore >= gateNumber);
+
+  // 门槛分三路，但共享实体/数字都不能单独无视余弦：
+  // 实体还要求余弦不低于 floor，数字还要求至少两个不重复的数字同时吻合。
+  const entityGate = bothEntities && entityScore >= gateEntity && cosine >= gateEntityCos;
+  const numberGate = bothNumbers && sharedNonYear >= gateNumberMinShared && numberScore >= gateNumber;
+  const gate = cosine >= gateCos || entityGate || numberGate;
 
   return { cosine, entityScore, numberScore, sim, gate };
 }
@@ -236,124 +245,160 @@ function meanVector(vectors) {
   return out;
 }
 
+function defaultCosine(a, b) {
+  if (!a.vector || !b.vector) throw new Error('clusterItems: 未提供 cosine 时每条 item 必须有 vector');
+  let dot = 0;
+  for (let i = 0; i < a.vector.length; i += 1) dot += a.vector[i] * b.vector[i];
+  return dot;
+}
+
+function hasEntityOverlap(a, b) {
+  if (a.entities.size === 0 || b.entities.size === 0) return false;
+  for (const id of a.entities) if (b.entities.has(id)) return true;
+  return false;
+}
+
+/** 并查集式单链聚类：保留用于对照与历史复现，**默认不用**。 */
+function groupBySingleLinkage(enriched, ctx) {
+  const uf = createUnionFind(enriched.length);
+  for (let i = 0; i < enriched.length; i += 1) {
+    for (let j = i + 1; j < enriched.length; j += 1) {
+      const a = enriched[i];
+      const b = enriched[j];
+      const cos = ctx.cosine(a, b);
+      if (Number.isNaN(cos)) continue;
+      if (cos < ctx.prefilterCos && !hasEntityOverlap(a, b)) continue;
+      if (isMatch(scorePair(cos, a, b, ctx), ctx.threshold)) uf.union(i, j);
+    }
+  }
+  const groups = new Map();
+  enriched.forEach((item, index) => {
+    const root = uf.find(index);
+    if (!groups.has(root)) groups.set(root, []);
+    groups.get(root).push(item);
+  });
+  return [...groups.values()];
+}
+
+/**
+ * 领导者聚类（默认）。
+ *
+ * 每条只与已存在的**簇代表**比较，够像才加入，否则自己当代表。
+ * 于是即使 A~B、B~C 成立，只要 A≁C，C 就不会被拉进 A 的簇——
+ * 传递链被结构性挡住，而不是靠 cohesion 事后打标。
+ *
+ * 为什么必须这样：实测 300 条真实数据（e5、T=0.80）用单链会串出一个 108 条的巨簇，
+ * 页面就会宣称"20 国都在报同一件事"。这是本产品最不能犯的错。
+ */
+function groupByStar(enriched, ctx) {
+  const clusters = [];
+
+  for (const item of enriched) {
+    let target = null;
+    let best = -1;
+
+    for (const cluster of clusters) {
+      const leader = cluster.members[0];
+      const cos = ctx.cosine(leader, item);
+      if (Number.isNaN(cos)) continue;
+      if (cos < ctx.prefilterCos && !hasEntityOverlap(leader, item)) continue;
+
+      const signals = scorePair(cos, leader, item, ctx);
+      if (!isMatch(signals, ctx.threshold)) continue;
+      if (signals.sim > best) {
+        best = signals.sim;
+        target = cluster;
+      }
+    }
+
+    if (target) target.members.push(item);
+    else clusters.push({ members: [item] });
+  }
+
+  return clusters.map((cluster) => cluster.members);
+}
+
+/** 用簇内真实两两相似度算凝聚力与 medoid。 */
+function describeCluster(members, ctx) {
+  let simSum = 0;
+  let simPairs = 0;
+  for (let i = 0; i < members.length; i += 1) {
+    for (let j = i + 1; j < members.length; j += 1) {
+      const cos = ctx.cosine(members[i], members[j]);
+      if (Number.isNaN(cos)) continue;
+      simSum += scorePair(cos, members[i], members[j], ctx).sim;
+      simPairs += 1;
+    }
+  }
+  const cohesion = simPairs === 0 ? 1 : simSum / simPairs;
+
+  const centroid = meanVector(members.filter((item) => item.vector).map((item) => item.vector));
+  let medoid = members[0];
+  if (centroid) {
+    let best = -Infinity;
+    for (const item of members) {
+      if (!item.vector) continue;
+      const score = ctx.cosine({ vector: centroid }, item);
+      if (score > best) {
+        best = score;
+        medoid = item;
+      }
+    }
+  }
+
+  // 同国多条只保留最接近质心的一条参与计数（§8.4 硬约束）
+  const byCountry = new Map();
+  for (const item of members) {
+    const score = centroid && item.vector ? ctx.cosine({ vector: centroid }, item) : 0;
+    const current = byCountry.get(item.country);
+    if (!current || score > current.score) byCountry.set(item.country, { item, score });
+  }
+
+  return { cohesion, medoid, counted: [...byCountry.values()].map((entry) => entry.item) };
+}
+
 /**
  * 跨国家聚类。
  *
- * @param {Array<{id:string, country:string, lang:string, title:string, vector?:number[], rank?:number}>} items
- *        items 应当来自"有效国家"，且已经过内容筛查（§7.6）。
- * @param {{cosine?: Function, threshold?: number}} options
+ * @param {Array<{id:string, country:string, lang:string, title:string, vector?:number[]}>} items
+ * @param {{cosine?: Function, threshold?: number, linkage?: 'star'|'single'}} options
  */
 export function clusterItems(items, options = {}) {
-  const cosine =
-    options.cosine ||
-    ((a, b) => {
-      if (!a.vector || !b.vector) throw new Error('clusterItems: 未提供 cosine 时每条 item 必须有 vector');
-      let dot = 0;
-      for (let i = 0; i < a.vector.length; i += 1) dot += a.vector[i] * b.vector[i];
-      return dot;
-    });
+  const ctx = {
+    cosine: options.cosine || defaultCosine,
+    threshold: options.threshold ?? T_MATCH,
+    prefilterCos: options.prefilterCos ?? PREFILTER_COS,
+    gateCos: options.gateCos,
+    gateEntity: options.gateEntity,
+    gateNumber: options.gateNumber,
+  };
 
-  const threshold = options.threshold ?? T_MATCH;
   const entitiesOf = options.entitiesOf || (() => new Set());
-  const prefilterCos = options.prefilterCos ?? PREFILTER_COS;
-
   const enriched = items.map((item) => ({
     ...item,
     entities: entitiesOf(item.title),
     numbers: numbersOf(item.title),
   }));
 
-  const uf = createUnionFind(enriched.length);
-  const pairSignals = new Map();
+  const groups = options.linkage === 'single' ? groupBySingleLinkage(enriched, ctx) : groupByStar(enriched, ctx);
 
-  for (let i = 0; i < enriched.length; i += 1) {
-    for (let j = i + 1; j < enriched.length; j += 1) {
-      const a = enriched[i];
-      const b = enriched[j];
-      // 同一个国家内部不参与跨语言聚类，同国去重是另一件事
-      if (a.country === b.country) continue;
-
-      const cos = cosine(a, b);
-      if (Number.isNaN(cos)) continue;
-
-      // 预筛：余弦太低且实体也不重合，直接跳过（§8.4 第 3 步）
-      const entityOverlap =
-        a.entities.size > 0 && b.entities.size > 0 && [...a.entities].some((id) => b.entities.has(id));
-      if (cos < prefilterCos && !entityOverlap) continue;
-
-      const signals = scorePair(cos, a, b, options);
-      if (isMatch(signals, threshold)) uf.union(i, j);
-      pairSignals.set(`${i}:${j}`, signals);
-    }
-  }
-
-  // 归并成簇
-  const groups = new Map();
-  enriched.forEach((item, index) => {
-    const root = uf.find(index);
-    if (!groups.has(root)) groups.set(root, []);
-    groups.get(root).push({ item, index });
-  });
-
-  const clusters = [];
-  for (const [, members] of groups) {
-    const memberItems = members.map((entry) => entry.item);
-    const memberIndexes = members.map((entry) => entry.index);
-
-    // 凝聚力 = 成员两两 sim 均值
-    let simSum = 0;
-    let simPairs = 0;
-    for (let i = 0; i < memberIndexes.length; i += 1) {
-      for (let j = i + 1; j < memberIndexes.length; j += 1) {
-        const key = `${Math.min(memberIndexes[i], memberIndexes[j])}:${Math.max(memberIndexes[i], memberIndexes[j])}`;
-        const signals = pairSignals.get(key);
-        if (!signals) continue;
-        simSum += signals.sim;
-        simPairs += 1;
-      }
-    }
-    const cohesion = simPairs === 0 ? 1 : simSum / simPairs;
-
-    // 质心与 medoid（§8.5）
-    const centroid = meanVector(memberItems.filter((item) => item.vector).map((item) => item.vector));
-    let medoid = memberItems[0];
-    if (centroid) {
-      let best = -Infinity;
-      for (const item of memberItems) {
-        if (!item.vector) continue;
-        const score = cosine({ vector: centroid }, item);
-        if (score > best) {
-          best = score;
-          medoid = item;
-        }
-      }
-    }
-
-    // 同国多条只保留最接近质心的一条参与计数（§8.4 硬约束）
-    const byCountry = new Map();
-    for (const item of memberItems) {
-      const score = centroid && item.vector ? cosine({ vector: centroid }, item) : 0;
-      const current = byCountry.get(item.country);
-      if (!current || score > current.score) byCountry.set(item.country, { item, score });
-    }
-
-    clusters.push({
-      members: memberItems,
-      counted: [...byCountry.values()].map((entry) => entry.item),
-      countries: [...new Set(memberItems.map((item) => item.country))],
+  const clusters = groups.map((members) => {
+    const { cohesion, medoid, counted } = describeCluster(members, ctx);
+    return {
+      members,
+      counted,
+      countries: [...new Set(members.map((item) => item.country))],
       cohesion,
       medoid,
-      label: medoid.title,
+      label: medoid.title || medoid.titleOriginal || '',
       lowConfidence: cohesion < COHESION_MIN,
-      eligibleForConsensus: byCountry.size >= MIN_CLUSTER_COUNTRIES,
-    });
-  }
+      eligibleForConsensus: counted.length >= MIN_CLUSTER_COUNTRIES,
+    };
+  });
 
-  // 稳定的排序：国家多的在前，其次凝聚力高的在前
   clusters.sort((a, b) => b.countries.length - a.countries.length || b.cohesion - a.cohesion);
   return clusters;
 }
-
 /** 便捷：从簇列表里取共识计数（≥2 国才算共识）。 */
 export function consensusCounts(clusters) {
   return clusters
