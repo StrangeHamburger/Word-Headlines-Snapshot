@@ -182,7 +182,50 @@ export async function resolveArticleUrls(items, options = {}) {
   const ready = prepared.filter((entry) => entry.signature && entry.timestamp);
   if (ready.length === 0) return results;
 
-  // 第 2 步：一次 POST 批量换 URL（分批，避免请求体过大）
+  // 第 2 步：换 URL。
+  //
+  // 【2026-10-28 实测结论，务必保留】
+  // batchexecute 一次带多条时，**返回顺序与请求顺序不保证一致**：
+  // 10 条请求回来 12 个元素，其中 6 条的落地页与标题不符（拿到的是邻近条目的地址）。
+  // 逐条 POST 则 8/8 全部对上标题。所以默认一条一个 POST，宁可多花请求也不许错配——
+  // 链接指错比没有链接恶劣得多（用户会以为那是原文）。
+  const mode = options.mode === 'batch' ? 'batch' : 'single';
+
+  if (mode === 'single') {
+    let index = 0;
+    await Promise.all(
+      Array.from({ length: Math.min(concurrency, ready.length) }, async () => {
+        while (index < ready.length) {
+          const entry = ready[index];
+          index += 1;
+          try {
+            const { status, text } = await fetchText(BATCHEXECUTE, {
+              method: 'POST',
+              headers: { 'content-type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+              body: buildFreq([entry], locale),
+              timeoutMs: options.timeoutMs ?? 30000,
+            });
+            if (status !== 200) {
+              results.set(entry.link, { url: null, strategy: 'batchexecute', error: `HTTP ${status}` });
+              continue;
+            }
+            const url = parseBatchResponse(text).find(Boolean) || null;
+            results.set(
+              entry.link,
+              url
+                ? { url, strategy: 'batchexecute' }
+                : { url: null, strategy: 'batchexecute', error: '响应里没找到 URL' },
+            );
+          } catch (error) {
+            results.set(entry.link, { url: null, strategy: 'batchexecute', error: String(error?.message || error) });
+          }
+        }
+      }),
+    );
+    return results;
+  }
+
+  // 批量模式：保留但顺序不可信，只在明确知道风险时使用。
   const batchSize = options.batchSize ?? 50;
   for (let start = 0; start < ready.length; start += batchSize) {
     const batch = ready.slice(start, start + batchSize);
@@ -240,8 +283,9 @@ export async function resolveArticleUrls(items, options = {}) {
  *   )]}'
  *   [["wrb.fr","Fbv4je","[\"garturlres\",\"https://...\",...]",null,null,null,"generic"], ...]
  *
- * 关键：**所有结果在同一个数组里**，元素顺序即请求顺序。
- * 早先按换行切分是错的——整个响应只有一行，导致每条都取到第一个 URL（六条返回同一个地址）。
+ * 注意：整个响应只有一行，**不能按换行切分**（否则每条都取到第一个 URL）。
+ * 另外实测发现：一次请求带多条时，元素顺序与请求顺序**不可靠**，
+ * 所以调用方应当一条一个 POST，只在响应里取第一个非空结果。
  */
 export function parseBatchResponse(body) {
   const text = String(body || '').replace(/^\)\]\}'/, '').trim();
