@@ -79,12 +79,13 @@ async function main() {
       const response = await fetch(`https://news.google.com/rss/articles/${articleId}`, {
         headers: { 'user-agent': UA, 'accept-language': 'en-US,en;q=0.9' },
         signal: AbortSignal.timeout(20000),
-        redirect: 'manual',
+        redirect: 'follow',
       });
       const text = await response.text();
       const parsed = parseSigTs(text);
       line.pageStatus = response.status;
       line.pageBytes = text.length;
+      line.finalUrl = response.url;
       if (parsed) {
         line.sig = `${parsed.signature.slice(0, 16)}…(${parsed.signature.length})`;
         line.ts = parsed.timestamp;
@@ -107,6 +108,9 @@ async function main() {
     console.log(
       `[${line.country}] ${line.articleId}  page=${line.pageStatus}  ${line.pageBytes || 0}B  sig=${line.sig}${line.ts ? `  ts=${line.ts}` : ''}`,
     );
+    if (line.finalUrl && line.finalUrl !== `https://news.google.com/rss/articles/${articleId}`) {
+      console.log(`     最终地址：${line.finalUrl.slice(0, 160)}`);
+    }
   }
 
   console.log('');

@@ -31,10 +31,14 @@ jobs:
       - name: 实测链接还原
         continue-on-error: true
         run: |
+          set +e
+          node src/scripts/probe-links.mjs --in data/probe/raw-latest.json --count "${{ inputs.count }}" --dump 2>&1 | tee /tmp/probe-links.txt
+          code=${PIPESTATUS[0]}
           {
             echo "## 新格式链接还原实测"
             echo ""
             echo '```'
-            node src/scripts/probe-links.mjs --in data/probe/raw-latest.json --count "${{ inputs.count }}" --dump
+            cat /tmp/probe-links.txt
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+          exit $code
