@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>今天 15 国都在报什么</title>
+<meta name="description" content="同一时刻，15 个国家的头条放在一起：哪些事件大家都在报，哪些只有个别国家关注。">
+<style>
+  :root {
+    --bg: #f7f7f5;
+    --fg: #1a1a1a;
+    --muted: #6b6b6b;
+    --line: #e2e2de;
+    --card: #ffffff;
+    --accent: #b3462f;
+    --consensus-bg: #fdf3ef;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14140f;
+      --fg: #ecece8;
+      --muted: #9a9a93;
+      --line: #2e2e28;
+      --card: #1c1c17;
+      --accent: #e0765c;
+      --consensus-bg: #2a1d18;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 40px 20px 64px; }
+  .masthead { border-bottom: 1px solid var(--line); padding-bottom: 20px; margin-bottom: 28px; }
+  .masthead h1 { font-size: 1.9rem; margin: 0 0 6px; letter-spacing: -0.01em; }
+  .masthead p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+  .consensus {
+    background: var(--consensus-bg);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 32px;
+  }
+  .consensus__label { margin: 0 0 4px; font-size: 0.8rem; letter-spacing: 0.08em; color: var(--accent); }
+  .consensus__title { margin: 0; font-size: 1.15rem; }
+  .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; display: flex; flex-direction: column; }
+  .card--failed { opacity: 0.55; }
+  .card__head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 10px; }
+  .card__flag { font-size: 1.1rem; }
+  .card__name { font-size: 1rem; margin: 0; font-weight: 600; }
+  .card__code { margin-left: auto; font-size: 0.72rem; color: var(--muted); letter-spacing: 0.06em; }
+  .card__items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+  .item__title { font-size: 0.95rem; font-weight: 500; text-decoration: none; color: var(--fg); }
+  a.item__title:hover { color: var(--accent); text-decoration: underline; }
+  .item__original { margin: 2px 0 0; font-size: 0.78rem; color: var(--muted); }
+  .item__meta { margin: 4px 0 0; font-size: 0.75rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .badge { border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; font-size: 0.7rem; }
+  .badge--consensus { color: var(--accent); border-color: currentColor; }
+  .card__silent, .card__offset { margin: 14px 0 0; padding-top: 10px; border-top: 1px dashed var(--line); font-size: 0.8rem; color: var(--muted); }
+  .card__silent-label, .card__offset-label { display: inline-block; margin-right: 6px; font-size: 0.7rem; letter-spacing: 0.06em; color: var(--accent); }
+  .card__silent-count { white-space: nowrap; }
+  .card__empty { color: var(--muted); font-size: 0.85rem; margin: 0; }
+  footer { margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 0.78rem; color: var(--muted); }
+  footer p { margin: 0 0 6px; }
+  footer a { color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="masthead">
+    <h1>今天 15 国都在报什么</h1>
+    <p>10/28 20:00 更新 · 15 国有效样本 · 同一时刻的头条并排看</p>
+  </header>
+  <section class="consensus">
+        <p class="consensus__label">11 国同时报道</p>
+        <h2 class="consensus__title">Netanyahu bloc slightly ahead in Israel elections but short of majority as most votes counted</h2>
+      </section>
+  <main class="grid">
+    <article class="card">
+      <header class="card__head">
+        <span class="card__flag" aria-hidden="true">🇺🇸</span>
+        <h2 class="card__name">美国</h2>
+        <span class="card__code">US</span>
+      </header>
+      <ul class="card__items"><li class="item">
+        <a class="item__title" href="https://www.nytimes.com/live/2026/10/28/world/israel-elections" target="_blank" rel="noopener noreferrer">Israel Election Results Live Updates: Exit Polls Show No Clear Winner</a>
+        
+        <p class="item__meta">The New York Times <span class="badge badge--consensus">11 国共同报道</span></p>
+      </li><li class="item">
+        <a class="item__title" href="https://www.theguardian.com/world/2026/oct/28/flavio-bolsonaro-miami-us-fleeing-brazilian-election-defeat" target="_blank" rel="noopener noreferrer">Flávio Bolsonaro on flight to Miami after fleeing Brazil amid election defeat</a>
+        
+        <p class="item__meta">The Guardian <span class="badge badge--consensus">10 国共同报道</span></p>
+      </li><li class="item">
+        <a class="item__title" href="https://www.cnn.com/2026/10/28/world/live-news/spain-train-crash-collision-intl" target="_blank" rel="noopener noreferrer">Live updates: Spain train crash kills at least 30 as witnesses describe devastating scenes</a>
+        
+        <p class="item__meta">CNN <span class="badge badge--consensus">7 国共同报道</span></p>
+      </li></ul>
+      
+      
+    </article>
+    <article class="card">
+      <header class="card__head">
+        <span class="card__flag" aria-hidden="true">🇧🇷</span>
+        <h2 class="card__name">巴西</h2>
+        <span class="card__code">BR</span>
+      </header>
+      <ul class="card__items"><li class="item">
+        <span class="item__title">Eleição no exterior: Lula venceu em 62 países, e Flávio Bolsonaro, em 39; confira resultado</span>
+        
+        <p class="item__meta">Jornal Correio</p>
+      </li><li class="item">
+        <a class="item__title" href="https://jovempan.com.br/mundo/colisao-entre-trens-de-alta-velocidade-deixa-varios-mortos-na-espanha/" target="_blank" rel="noopener noreferrer">Colisão entre trens de alta velocidade deixa ao menos 30 mortos na Espanha</a>
+        
+        <p class="item__meta">Jovem Pan <span class="badge badge--consensus">7 国共同报道</span></p>
+      </li><li class="item">
+        <a class="item__title" href="https://www.poder360.com.br/poder-internacional/bloco-de-netanyahu-lidera-apuracao-em-israel-mas-sem-maioria/" target="_blank" rel="noopener noreferrer">Bloco de Netanyahu lidera apuração em Israel, mas sem maioria</a>
+        
+        <p class="item__meta">Poder360 <span class="badge badge--consensus">11 国共同报道</span></p>
+      </li></ul>
+      
+      
+    </article>
+    <article class="card">
+      <header class="card__head">
+        <span class="card__flag" aria-hidden="true">🇨🇦</span>
+        <h2 class="card__name">加拿大</h2>
+        <span class="card__code">CA</span>
+      </header>
+      <ul class="card__items"><li class="item">
+        <a class="item__title" href="https://www.cnn.com/2026/10/28/world/live-news/spain-train-crash-collision-intl" target="_blank" rel="noopener noreferrer">Live updates: Spain train crash kills at least 30 as witnesses describe devastating scenes</a>
+        
+        <p class="item__meta">CNN <span class="badge badge--consensus">7 国共同报道</span></p>
+      </li><li class="item">
+        <a class="item__title" href="https://www.cbc.ca/news/canada/montreal/end-time-change-parti-quebecois-9.7399165" target="_blank" rel="noopener noreferrer">Parti Québécois promises to abolish time change, starting next year</a>
+        
+        <p class="item__meta">CBC</p>
+      </li><li class="item">
+        <span class="item__title">Election denial has gone mainstream in the U.S. What does that mean for the midterms?</span>
+        
+        <p class="item__meta">CBC <span class="badge badge--consensus">6 国共同报道</span></p>
+      </li></ul>
+      
+      
+    </article>
+    <article class="card">
+      <header class="card__head">
+        <span class="card__flag" aria-hidden="true">🇲🇽</span>
+        <h2 class="card__name">墨西哥</h2>
+        <span class="card__code">MX</span>
+      </header>
+      <ul class="card__items"><li class="item">
+        <a class="item__title" href="https://www.jornada.com.mx/noticia/2026/10/27/politica/consejeros-del-ine-niegan-acercamientos-con-proveedores-frenan-nuevos-contratos" target="_blank" rel="noopener noreferrer">Consejeros del INE niegan acercamientos con proveedores; frenan nuevos contratos</a>
+        
+        <p class="item__meta">La Jornada</p>
+      </li><li class="item">
+        <a class="item__title" href="https://puentelibre.mx/internacional/choque-entre-trenes-en-espana-30-muertos-por-lo-menos-octubre-2025/" target="_blank" rel="noopener noreferrer">Choque entre trenes en España: 50 muertos por lo menos 🎦</a>
+        
+        <p class="item__meta">Puente Libre</p>
+      </li><li class="item">
+        <a class="item__title" href="https://www.elfinanciero.com.mx/nacional/2026/10/27/jesus-chuy-gonzalez-narcotraficante-del-cartel-de-sinaloa-por-quien-eu-ofrecia-5-millones-de-dolares-es-abatido/" target="_blank" rel="noopener noreferrer">Abaten a Jesús ‘Chuy’ González, operador del Cártel de Sinaloa por quien la DEA ofrecía 5 mdd</a>
+        
+        <p class="item__meta">El Financiero</p>
+      </li></ul>
+      <p class="card__silent"><span class="card__silent-label">本期未包含</span>
+          Live updates: Spain train crash kills at least 30 as witnesses describe devastating scenes
+          <span class="card__silent-count">7 国在报</span></p>
+      
+    </article>
+    <article class="card">
+      <header class="card__head">
+        <span class="card__flag" aria-hidden="true">🇬🇧</span>
+        <h2 class="card__name">英国</h2>
+        <span class="card__code">GB</span>
+      </header>
+      <ul class="card__items"><li class="item">
+        <a class="item__title" href="https://www.theguardian.com/money/2026/oct/28/john-healey-to-end-standing-charges-on-gas-bills-ofgem-budget" target="_blank" rel="noopener noreferrer">John Healey to end standing charges on gas bills for 23m homes</a>
+        
+        <p class="item__meta">The Guardian</p>
+      </li><li class="item">
+        <a class="item__title" href="https://www.bbc.co.uk/news/live/cqpvgnlm9944t" target="_blank" rel="noopener noreferrer">Netanyahu bloc slightly ahead in Israel elections but short of majority as most votes counted</a>
+        
+        <p class="item__meta">BBC <span class="badge badge--consensus">11 国共同报道</span></p>
+      </li><li class="item">
+        <a class="item__title" href="https://www.bbc.com/news/live/cv1j309d4g98t" target="_blank" rel="noopener noreferrer">At least 64 killed in Spanish high-speed train crash with dozens seriously injured, regional government says</a>
+        
+        <p class="item__meta">BBC <span class="badge badge--consensus">7 国共同报道</span></p>
+      </li></ul>
+      <p class="card__silent"><span class="card__silent-label">本期未包含</span>
+          US midterms: Six days left – who leads in the polls as Trump, Obama rally
+          <span class="card__silent-count">6 国在报</span></p>
+      
+    </article>
+    <article class="card">
+      <header class="card__head">
+        <span class="card__flag" aria-hidden="true">🇩🇪</span>
+        <h2 class="card__name">德国</h2>
+        <span class="card__code">DE</span>
+      </header>
+      <ul class="card__items"><li class="item">
+        <a class="item__title" href="https://www.deutschlandfunk.de/netanjahu-liegt-bei-parlamentswahl-vorn-aber-ohne-mehrheit-beide-lager-sehen-regierungsauftrag-100.html" target="_blank" rel="noopener noreferrer">Israel - Netanjahu liegt bei Parlamentswahl vorn, aber ohne Mehrheit - beide Lager sehen Regierungsauftrag</a>
+        
+        <p class="item__meta">Deutschlandfunk <span class="badge badge--consensus">11 国共同报道</span></p>
+      </li><li class="item">
+        <a class="item__title" href="https://www.tagesschau.de/ausland/europa/spanien-zugunglueck-124.html" target="_blank" rel="noopener noreferrer">Mindestens 30 Tote nach Zugunglück in Spanien</a>
+        
+        <p class="item__meta">tagesschau.de <span class="badge badge--consensus">7 国共同报道</span></p>
+      </li><li class="item">
+        <a class="item__title" href="https://www.welt.de/politik/deutschland/article6ae1b7ab8f0a4dd417a5e751/sachsen-anhalt-cdu-abgeordnete-sollten-eidesstattliche-erklaerung-unterschreiben-ruecktrittsforderung-an-schulze.html" target="_blank" rel="noopener noreferrer">Sachsen-Anhalt: CDU-Abgeordnete sollten eidesstattliche Erklärung unterschreiben – Rücktrittsforderung an Schulze</a>
+        
+        <p class="item__meta">WELT</p>
+      </li></ul>
+      <p class="card__silent"><span class="card__silent-label">本期未包含</span>
+          Flavio Bolsonaro flies from Argentina after Brazil election defeat
+          <span class="card__silent-count">10 国在报</span></p>
+      
+    </article>
+    <article class="card">
+      <header class="card__head">
+        <span class="card__flag" aria-hidden="true">🇫🇷</span>
+        <h2 class="card__name">法国</h2>
+        <span class="card__code">FR</span>
+      </header>
+      <ul class="card__items"><li class="item">
+        <a class="item__title" href="https://www.lemonde.fr/international/live/2026/10/28/en-direct-accident-entre-deux-trains-en-espagne-le-bilan-passe-a-au-moins-64-morts-selon-le-gouvernement-regional-de-castille-la-manche_6801550_3210.html" target="_blank" rel="noopener noreferrer">EN DIRECT, accident entre deux trains en Espagne : le bilan passe à au moins 64 morts, selon le gouvernement régional de Castille-La Manche</a>
+        
+        <p class="item__meta">Le Monde.fr <span class="badge badge--consensus">7 国共同报道</span></p>
+      </li><li class="item">
+        <span class="item__title">EN DIRECT - Colère sociale : un conseil de défense réuni à l&#39;Élysée pour préparer les manifestations du week-end</span>
+        
+        <p class="item__meta">TF1 Info</p>
+      </li><li class="item">
+        <span class="item__title">DIRECT. Présidentielle 2027 : Marine Le Pen menacée par une possible invalidation de sa candidature ? Les avocats de la candidate RN portent plainte contre un haut-magistrat</span>
+        
+        <p class="item__meta">ladepeche.fr</p>
+      </li></ul>
+      <p class="card__silent"><span class="card__silent-label">本期未包含</span>
+          US midterms: Six days left – who leads in the polls as Trump, Obama rally
+          <span class="card__silent-count">6 国在报</span></p>
+      
+    </article>
+    <article class="card">
+      <header class="card__head">
+        <span class="card__flag" aria-hidden="true">🇮🇹</span>
+        <h2 class="card__name">意大利</h2>
+        <span class="card__code">IT</span>
+      </header>
+      <ul class="card__items"><li class="item">
+        <a class="item__title" href="https://www.corriere.it/esteri/26_ottobre_28/spagna-scontro-treni-99549d1e-328e-4767-81ab-71e69663exlk.shtml" target="_blank" rel="noopener noreferrer">Spagna, scontro tra due treni sulla linea ad alta velocità a Toledo: «Almeno 30 morti, due carrozze precipitate in una scarpata»</a>
+        
+        <p class="item__meta">Corriere della Sera <span class="badge badge--consensus">5 国共同报道</span></p>
+      </li><li class="item">
+        <a class="item__title" href="https://milano.corriere.it/notizie/cronaca/26_ottobre_28/youssef-siher-la-giudice-non-convalida-l-arresto-non-c-erano-gravi-indizi-per-fermarlo-ordine-di-scarcerazione-immediata-7d09dc0c-9cc2-4be7-a802-e92134a92xlk.shtml" target="_blank" rel="noopener noreferrer">Youssef Siher, la giudice non convalida l&#39;arresto: «Non c&#39;erano gravi indizi per fermarlo». Ordine di scarcerazione immediata</a>
+        
+        <p class="item__meta">Corriere Milano</p>
+      </li><li class="item">
+        <a class="item__title" href="https://www.ilsole24ore.com/art/manovra-trattativa-finale-tagli-irpef-tavolo-altre-richieste-banche-AJfIqGwB" target="_blank" rel="noopener noreferrer">Legge di Bilancio 2027: trattativa finale su taglio Irpef e altre richieste alle banche</a>
+        
+        <p class="item__meta">Il Sole 24 ORE</p>
+      </li></ul>
+      <p class="card__silent"><span class="card__silent-label">本期未包含</span>
+          Netanyahu bloc slightly ahead in Israel elections but short of majority as most votes counted
+          <span class="card__silent-count">11 国在报</span></p>
+      
+    </article>
+    <article class="card">
+      <header class="card__head">
+        <span class="card__flag" aria-hidden="true">🇪🇸</span>
+        <h2 class="card__name">西班牙</h2>
+        <span class="card__code">ES</span>
+      </header>
+      <ul class="card__items"><li class="item">
+        <a class="item__title" href="https://elpais.com/espana/2026-10-28/ultima-hora-del-choque-entre-dos-trenes-en-los-yebenes-toledo-en-directo.html" target="_blank" rel="noopener noreferrer">Última hora del accidente de trenes en Toledo, en directo | Al menos 30 muertos en el choque de trenes en Urda</a>
+        
+        <p class="item__meta">EL PAÍS <span class="badge badge--consensus">5 国共同报道</span></p>
+      </li><li class="item">
+        <a class="item__title" href="https://www.infobae.com/espana/2026/10/28/begona-gomez-denuncia-al-pp-por-el-video-con-ia-que-le-hace-decir-que-es-zurda-porque-consiguio-una-catedra-gracias-a-que-su-marido-es-presidente-del-gobierno/" target="_blank" rel="noopener noreferrer">Begoña Gómez denuncia al PP por el vídeo con IA que le hace decir que es “zurda” porque consiguió una cátedra “gracias” a que su marido es presidente del Gobierno</a>
+        
+        <p class="item__meta">Infobae</p>
+      </li><li class="item">
+        <a class="item__title" href="https://www.larazon.es/cataluna/cataluna-legitimas-demandas-medicos-situa-huelga-marco-estatal_202610286ae1b799a5f83c2fb8e62e95.html" target="_blank" rel="noopener noreferrer">Cataluña ve &quot;legítimas&quot; las demandas de los médicos y sitúa la huelga en el marco estatal</a>
+        
+        <p class="item__meta">La Razón</p>
+      </li></ul>
+      <p class="card__silent"><span class="card__silent-label">本期未包含</span>
+          US midterms: Six days left – who leads in the polls as Trump, Obama rally
+          <span class="card__silent-count">6 国在报</span></p>
+      
+    </article>
+    <article class="card">
+      <header class="card__head">
+        <span class="card__flag" aria-hidden="true">🇯🇵</span>
+        <h2 class="card__name">日本</h2>
+        <span class="card__code">JP</span>
+      </header>
+      <ul class="card__items"><li class="item">
+        <a class="item__title" href="https://www.jiji.com/jc/article?k" target="_blank" rel="noopener noreferrer">スペイン高速列車衝突、30人死亡 サンチェス首相「事故に衝撃」、人為的ミスか</a>
+        
+        <p class="item__meta">時事ドットコム <span class="badge badge--consensus">5 国共同报道</span></p>
+      </li><li class="item">
+        <span class="item__title">ニデック、有報の「適正意見」間に合わず 上場維持審査中の取得めざす</span>
+        
+        <p class="item__meta">日本経済新聞</p>
+      </li><li class="item">
+        <a class="item__title" href="https://www.47news.jp/15151183.html" target="_blank" rel="noopener noreferrer">【速報】沈没の元寇船で麻雀起源の札発見か</a>
+        
+        <p class="item__meta">47NEWS</p>
+      </li></ul>
+      <p class="card__silent"><span class="card__silent-label">本期未包含</span>
+          Live updates: Spain train crash kills at least 30 as witnesses describe devastating scenes
+          <span class="card__silent-count">7 国在报</span></p>
+      
+    </article>
+    <article class="card">
+      <header class="card__head">
+        <span class="card__flag" aria-hidden="true">🇰🇷</span>
+        <h2 class="card__name">韩国</h2>
+        <span class="card__code">KR</span>
+      </header>
+      <ul class="card__items"><li class="item">
+        <span class="item__title">안철수, 이 대통령 언론 비판에 “대통령이 청와대 편집국장이냐”</span>
+        
+        <p class="item__meta">경향신문</p>
+      </li><li class="item">
+        <a class="item__title" href="https://www.ytn.co.kr/_ln/0101_202610281857452040" target="_blank" rel="noopener noreferrer">박범계 &quot;조희대 국조, 유연하고 나이스하게 몰아가야...우격다짐으로 갔다간 반동&quot;</a>
+        
+        <p class="item__meta">YTN</p>
+      </li><li class="item">
+        <a class="item__title" href="https://imnews.imbc.com/news/2026/world/article/6861433_36925.html" target="_blank" rel="noopener noreferrer">브라질 법원 &quot;美부통령 후원단체 보우소나루 지원의혹 조사명령&quot;</a>
+        
+        <p class="item__meta">MBC 뉴스</p>
+      </li></ul>
+      <p class="card__silent"><span class="card__silent-label">本期未包含</span>
+          Netanyahu bloc slightly ahead in Israel elections but short of majority as most votes counted
+          <span class="card__silent-count">11 国在报</span></p>
+      
+    </article>
+    <article class="card">
+      <header class="card__head">
+        <span class="card__flag" aria-hidden="true">🇮🇳</span>
+        <h2 class="card__name">印度</h2>
+        <span class="card__code">IN</span>
+      </header>
+      <ul class="card__items"><li class="item">
+        <a class="item__title" href="https://www.aljazeera.com/news/2026/10/28/five-key-takeaways-from-israels-parliamentary-elections" target="_blank" rel="noopener noreferrer">Five key takeaways from Israel’s parliamentary elections</a>
+        
+        <p class="item__meta">Al Jazeera <span class="badge badge--consensus">11 国共同报道</span></p>
+      </li><li class="item">
+        <a class="item__title" href="https://www.thehindu.com/news/international/several-people-dead-in-crash-between-2-spanish-trains-in-toledo-province/article71635210.ece" target="_blank" rel="noopener noreferrer">At least 10 dead in crash between two trains in Spain’s Toledo province</a>
+        
+        <p class="item__meta">The Hindu <span class="badge badge--consensus">5 国共同报道</span></p>
+      </li><li class="item">
+        <a class="item__title" href="https://www.thehindu.com/news/national/cyclone-arnab-landfall-andhra-pradesh-odisha-rainfall-weather-imd-alert-live-updates-october-28-2026/article71634111.ece" target="_blank" rel="noopener noreferrer">Cyclone ‘Arnab’ LIVE updates | Five killed in Andhra; ₹5 lakh ex gratia for families</a>
+        
+        <p class="item__meta">The Hindu</p>
+      </li></ul>
+      <p class="card__silent"><span class="card__silent-label">本期未包含</span>
+          US midterms: Six days left – who leads in the polls as Trump, Obama rally
+          <span class="card__silent-count">6 国在报</span></p>
+      
+    </article>
+    <article class="card">
+      <header class="card__head">
+        <span class="card__flag" aria-hidden="true">🇮🇩</span>
+        <h2 class="card__name">印尼</h2>
+        <span class="card__code">ID</span>
+      </header>
+      <ul class="card__items"><li class="item">
+        <span class="item__title">Massa Aksi Sampaikan Aspirasi di Bundaran HI</span>
+        
+        <p class="item__meta">detikNews</p>
+      </li><li class="item">
+        <a class="item__title" href="https://news.detik.com/berita/d-8728444/momen-prabowo-terima-menlu-singapura-di-hambalang" target="_blank" rel="noopener noreferrer">Momen Prabowo Terima Menlu Singapura di Hambalang</a>
+        
+        <p class="item__meta">detikNews</p>
+      </li><li class="item">
+        <a class="item__title" href="https://finance.detik.com/berita-ekonomi-bisnis/d-8727556/sanksi-pajak-bisa-dihapus-hingga-100-harus-diajukan-lewat-coretax" target="_blank" rel="noopener noreferrer">Sanksi Pajak Bisa Dihapus hingga 100%, Harus Diajukan Lewat Coretax</a>
+        
+        <p class="item__meta">detikFinance</p>
+      </li></ul>
+      <p class="card__silent"><span class="card__silent-label">本期未包含</span>
+          US midterms: Six days left – who leads in the polls as Trump, Obama rally
+          <span class="card__silent-count">6 国在报</span></p>
+      
+    </article>
+    <article class="card">
+      <header class="card__head">
+        <span class="card__flag" aria-hidden="true">🇦🇺</span>
+        <h2 class="card__name">澳大利亚</h2>
+        <span class="card__code">AU</span>
+      </header>
+      <ul class="card__items"><li class="item">
+        <a class="item__title" href="https://www.abc.net.au/news/2026-10-28/deadly-high-speed-train-collision-spain/107320916" target="_blank" rel="noopener noreferrer">At least 64 dead as high-speed trains collide in Spain - ABC News &amp; Headlines – Australian Broadcasting Corporation</a>
+        
+        <p class="item__meta">ABC News &amp; Headlines – Australian Broadcasting Corporation <span class="badge badge--consensus">7 国共同报道</span></p>
+      </li><li class="item">
+        <a class="item__title" href="https://www.abc.net.au/news/2026-10-28/tayla-lee-brailey-sentencing/107318292" target="_blank" rel="noopener noreferrer">Former teacher Tayla Lee Brailey jailed for sex acts with students - ABC News &amp; Headlines – Australian Broadcasting Corporation</a>
+        
+        <p class="item__meta">ABC News &amp; Headlines – Australian Broadcasting Corporation</p>
+      </li><li class="item">
+        <a class="item__title" href="https://www.theguardian.com/australia-news/2026/oct/28/bluey-knifepoint-colouring-book-pauline-hanson-denies-responsibility-politics-ntwnfb" target="_blank" rel="noopener noreferrer">Pauline Hanson denies responsibility for colouring book depicting Bluey being held at knifepoint</a>
+        
+        <p class="item__meta">The Guardian</p>
+      </li></ul>
+      <p class="card__silent"><span class="card__silent-label">本期未包含</span>
+          Flavio Bolsonaro flies from Argentina after Brazil election defeat
+          <span class="card__silent-count">10 国在报</span></p>
+      
+    </article>
+    <article class="card">
+      <header class="card__head">
+        <span class="card__flag" aria-hidden="true">🇿🇦</span>
+        <h2 class="card__name">南非</h2>
+        <span class="card__code">ZA</span>
+      </header>
+      <ul class="card__items"><li class="item">
+        <a class="item__title" href="https://www.enca.com/news-top-stories/suliman-carrim-granted-r100k-bail-madlanga-case" target="_blank" rel="noopener noreferrer">Suliman Carrim granted R100k bail in Madlanga case</a>
+        
+        <p class="item__meta">eNCA</p>
+      </li><li class="item">
+        <a class="item__title" href="https://www.news24.com/southafrica/crime-and-courts/two-south-africans-arrested-in-the-us-on-child-pornography-related-charges-20261028-0518" target="_blank" rel="noopener noreferrer">Two South Africans arrested in the US on child pornography-related charges</a>
+        
+        <p class="item__meta">News24 <span class="badge badge--consensus">2 国共同报道</span></p>
+      </li><li class="item">
+        <a class="item__title" href="https://www.enca.com/news-top-stories/four-pupils-stranded-heavy-rains-batter-eastern-cape" target="_blank" rel="noopener noreferrer">Four pupils stranded as heavy rains batter Eastern Cape</a>
+        
+        <p class="item__meta">eNCA</p>
+      </li></ul>
+      <p class="card__silent"><span class="card__silent-label">本期未包含</span>
+          Live updates: Spain train crash kills at least 30 as witnesses describe devastating scenes
+          <span class="card__silent-count">7 国在报</span></p>
+      
+    </article>
+  </main>
+  <footer>
+    <p>每条标题保留原文，译文仅供参考；标题链接指向发布方页面，解不出原始地址的条目不提供跳转。</p>
+    <p>国家顺序固定，不按热度排序——排序本身会变成一种编辑立场。</p>
+    <p>生成于 2026-10-28T13:50:48.974Z</p>
+  </footer>
+</div>
+</body>
+</html>
