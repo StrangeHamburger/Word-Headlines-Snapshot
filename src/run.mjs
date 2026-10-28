@@ -336,6 +336,8 @@ async function main() {
   // 渲染层按 eventId 回查只能拿到其中一条，另一条会被当成"没有链接"。
   // 共识计数本来就按国家去重，删掉重复不影响统计。
   for (const entry of perCountry) {
+    // 样本是否充足看抓取量，不看去重后剩几条——否则近重复多的国家会被误判为样本不足
+    entry.itemsFetched = entry.items.length;
     const seenEvents = new Set();
     entry.items = entry.items.filter((item) => {
       if (seenEvents.has(item.eventId)) return false;
@@ -356,7 +358,7 @@ async function main() {
 
   const translateTargets = [];
   for (const entry of perCountry) {
-    const pool = entry.items.length >= MIN_ITEMS_FULL ? entry.items : [];
+    const pool = entry.itemsFetched >= MIN_ITEMS_FULL ? entry.items : [];
     const picked = [];
     const usedEvents = new Set();
     for (const item of pool) {
@@ -394,7 +396,7 @@ async function main() {
   let suppressedClaims = 0;
   const outputCountries = perCountry.map((entry) => {
     const { country, items, feed } = entry;
-    const ok = items.length >= MIN_ITEMS_VALID;
+    const ok = (entry.itemsFetched ?? items.length) >= MIN_ITEMS_VALID;
     const displayItems = entry.displayItems || [];
     const displayIds = displayItems.map((item) => item.eventId);
 
@@ -402,7 +404,7 @@ async function main() {
     // 未包含：本国确实没报、但足够多国家在报的事件。
     // 守卫会把"其实报了、只是被归到别的簇"的事件撤掉——宁可不出这个标记，也不能说假话。
     let silentEvent = null;
-    if (denominator && items.length >= MIN_ITEMS_FULL) {
+    if (denominator && (entry.itemsFetched ?? items.length) >= MIN_ITEMS_FULL) {
       const result = pickSilentEvent({
         countryCode: country.code,
         items,
@@ -424,8 +426,8 @@ async function main() {
         usedFallback: Boolean(feed.usedFallback),
         httpStatus: feed.httpStatus ?? null,
         latencyMs: feed.latencyMs ?? null,
-        itemsFetched: items.length,
-        itemsValid: ok ? items.length : items.length,
+        itemsFetched: entry.itemsFetched ?? items.length,
+        itemsValid: items.length,
         stale: false,
         fetchedAt: new Date().toISOString(),
         consecutiveFailures: 0,
