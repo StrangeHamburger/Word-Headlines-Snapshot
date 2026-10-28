@@ -1,0 +1,311 @@
+{
+  "_readme": [
+    "实体表：用于聚类时的实体约束（§8.2）。",
+    "目标约 500 个高频实体（国家、主要人物、组织、地名），当前只是起步集，需要持续补。",
+    "补的时候优先补『同名异物』和『跨语言写法差异大』的实体——这两类是错连的主要来源。",
+    "匹配规则：别名子串匹配、大小写不敏感；拉丁字母要求词边界，CJK 直接匹配。",
+    "id 用稳定标识（如 Wikidata QID 或自定义 slug），**不要改**，改了历史 lineage 会断。"
+  ],
+  "entities": [
+    {
+      "id": "united-states",
+      "canonical": "United States",
+      "aliases": {
+        "en": ["United States", "US", "U.S."],
+        "zh": ["美国"],
+        "de": ["USA", "Vereinigte Staaten"],
+        "fr": ["États-Unis"],
+        "es": ["Estados Unidos"],
+        "ja": ["アメリカ", "米国"],
+        "ko": ["미국"]
+      }
+    },
+    {
+      "id": "european-union",
+      "canonical": "European Union",
+      "aliases": {
+        "en": ["European Union", "EU"],
+        "zh": ["欧盟"],
+        "de": ["Europäische Union", "EU"],
+        "fr": ["Union européenne", "UE"],
+        "es": ["Unión Europea", "UE"],
+        "it": ["Unione Europea", "UE"],
+        "ja": ["欧州連合", "EU"]
+      }
+    },
+    {
+      "id": "trump",
+      "canonical": "Donald Trump",
+      "aliases": {
+        "en": ["Donald Trump", "Trump"],
+        "zh": ["特朗普", "川普"],
+        "de": ["Trump"],
+        "fr": ["Trump"],
+        "es": ["Trump"],
+        "ja": ["トランプ"],
+        "ko": ["트럼프"]
+      }
+    },
+    {
+      "id": "putin",
+      "canonical": "Vladimir Putin",
+      "aliases": {
+        "en": ["Vladimir Putin", "Putin"],
+        "zh": ["普京"],
+        "de": ["Putin"],
+        "fr": ["Poutine"],
+        "es": ["Putin"],
+        "ja": ["プーチン"],
+        "ko": ["푸틴"]
+      }
+    },
+    {
+      "id": "zelensky",
+      "canonical": "Volodymyr Zelensky",
+      "aliases": {
+        "en": ["Volodymyr Zelensky", "Zelensky", "Zelenskyy"],
+        "zh": ["泽连斯基"],
+        "de": ["Selenskyj"],
+        "fr": ["Zelensky"],
+        "es": ["Zelenski"],
+        "ja": ["ゼレンスキー"]
+      }
+    },
+    {
+      "id": "united-nations",
+      "canonical": "United Nations",
+      "aliases": {
+        "en": ["United Nations", "UN", "U.N."],
+        "zh": ["联合国"],
+        "de": ["Vereinte Nationen", "UN"],
+        "fr": ["Nations unies", "ONU"],
+        "es": ["Naciones Unidas", "ONU"],
+        "ja": ["国際連合", "国連"]
+      }
+    },
+    {
+      "id": "nato",
+      "canonical": "NATO",
+      "aliases": {
+        "en": ["NATO"],
+        "zh": ["北约"],
+        "de": ["NATO"],
+        "fr": ["OTAN"],
+        "es": ["OTAN"],
+        "it": ["NATO"],
+        "ja": ["NATO", "北大西洋条約機構"]
+      }
+    },
+    {
+      "id": "federal-reserve",
+      "canonical": "Federal Reserve",
+      "aliases": {
+        "en": ["Federal Reserve", "the Fed", "Fed"],
+        "zh": ["美联储"],
+        "de": ["Fed", "Notenbank"],
+        "fr": ["Réserve fédérale", "Fed"],
+        "es": ["Reserva Federal"]
+      }
+    },
+    {
+      "id": "ecb",
+      "canonical": "European Central Bank",
+      "aliases": {
+        "en": ["European Central Bank", "ECB"],
+        "zh": ["欧洲央行"],
+        "de": ["Europäische Zentralbank", "EZB"],
+        "fr": ["Banque centrale européenne", "BCE"],
+        "es": ["Banco Central Europeo", "BCE"],
+        "it": ["Banca centrale europea", "BCE"]
+      }
+    },
+    {
+      "id": "apple",
+      "canonical": "Apple",
+      "aliases": {
+        "en": ["Apple Inc", "Apple"],
+        "zh": ["苹果"],
+        "de": ["Apple"],
+        "fr": ["Apple"],
+        "es": ["Apple"],
+        "ja": ["アップル"]
+      }
+    },
+    {
+      "id": "openai",
+      "canonical": "OpenAI",
+      "aliases": {
+        "en": ["OpenAI"],
+        "zh": ["OpenAI"],
+        "de": ["OpenAI"],
+        "fr": ["OpenAI"],
+        "es": ["OpenAI"],
+        "ja": ["OpenAI"]
+      }
+    },
+    {
+      "id": "nvidia",
+      "canonical": "Nvidia",
+      "aliases": {
+        "en": ["Nvidia", "NVIDIA"],
+        "zh": ["英伟达"],
+        "de": ["Nvidia"],
+        "fr": ["Nvidia"],
+        "es": ["Nvidia"],
+        "ja": ["エヌビディア"]
+      }
+    },
+    {
+      "id": "tesla",
+      "canonical": "Tesla",
+      "aliases": {
+        "en": ["Tesla"],
+        "zh": ["特斯拉"],
+        "de": ["Tesla"],
+        "fr": ["Tesla"],
+        "es": ["Tesla"],
+        "ja": ["テスラ"]
+      }
+    },
+    {
+      "id": "netflix",
+      "canonical": "Netflix",
+      "aliases": {
+        "en": ["Netflix"],
+        "zh": ["奈飞", "网飞"],
+        "de": ["Netflix"],
+        "fr": ["Netflix"],
+        "es": ["Netflix"],
+        "ja": ["ネットフリックス"]
+      }
+    },
+    {
+      "id": "olympics",
+      "canonical": "Olympics",
+      "aliases": {
+        "en": ["Olympics", "Olympic Games"],
+        "zh": ["奥运会", "奥林匹克"],
+        "de": ["Olympia", "Olympische Spiele"],
+        "fr": ["Jeux olympiques", "JO"],
+        "es": ["Juegos Olímpicos"],
+        "ja": ["オリンピック"],
+        "ko": ["올림픽"]
+      }
+    },
+    {
+      "id": "world-cup",
+      "canonical": "World Cup",
+      "aliases": {
+        "en": ["World Cup"],
+        "zh": ["世界杯"],
+        "de": ["Weltmeisterschaft", "WM"],
+        "fr": ["Coupe du monde"],
+        "es": ["Copa del Mundo", "Mundial"],
+        "ja": ["ワールドカップ"],
+        "ko": ["월드컵"]
+      }
+    },
+    {
+      "id": "gaza",
+      "canonical": "Gaza",
+      "aliases": {
+        "en": ["Gaza"],
+        "zh": ["加沙"],
+        "de": ["Gaza"],
+        "fr": ["Gaza"],
+        "es": ["Gaza"],
+        "ja": ["ガザ"]
+      }
+    },
+    {
+      "id": "ukraine",
+      "canonical": "Ukraine",
+      "aliases": {
+        "en": ["Ukraine"],
+        "zh": ["乌克兰"],
+        "de": ["Ukraine"],
+        "fr": ["Ukraine"],
+        "es": ["Ucrania"],
+        "ja": ["ウクライナ"],
+        "ko": ["우크라이나"]
+      }
+    },
+    {
+      "id": "israel",
+      "canonical": "Israel",
+      "aliases": {
+        "en": ["Israel"],
+        "zh": ["以色列"],
+        "de": ["Israel"],
+        "fr": ["Israël"],
+        "es": ["Israel"],
+        "ja": ["イスラエル"],
+        "ko": ["이스라엘"]
+      }
+    },
+    {
+      "id": "china",
+      "canonical": "China",
+      "aliases": {
+        "en": ["China", "Chinese"],
+        "zh": ["中国"],
+        "de": ["China"],
+        "fr": ["Chine"],
+        "es": ["China"],
+        "ja": ["中国"],
+        "ko": ["중국"]
+      }
+    },
+    {
+      "id": "japan",
+      "canonical": "Japan",
+      "aliases": {
+        "en": ["Japan", "Japanese"],
+        "zh": ["日本"],
+        "de": ["Japan"],
+        "fr": ["Japon"],
+        "es": ["Japón"],
+        "ja": ["日本"],
+        "ko": ["일본"]
+      }
+    },
+    {
+      "id": "india",
+      "canonical": "India",
+      "aliases": {
+        "en": ["India", "Indian"],
+        "zh": ["印度"],
+        "de": ["Indien"],
+        "fr": ["Inde"],
+        "es": ["India"],
+        "ja": ["インド"],
+        "ko": ["인도"]
+      }
+    },
+    {
+      "id": "brazil",
+      "canonical": "Brazil",
+      "aliases": {
+        "en": ["Brazil", "Brazilian"],
+        "zh": ["巴西"],
+        "de": ["Brasilien"],
+        "fr": ["Brésil"],
+        "es": ["Brasil"],
+        "pt": ["Brasil"],
+        "ja": ["ブラジル"]
+      }
+    },
+    {
+      "id": "boeing",
+      "canonical": "Boeing",
+      "aliases": {
+        "en": ["Boeing"],
+        "zh": ["波音"],
+        "de": ["Boeing"],
+        "fr": ["Boeing"],
+        "es": ["Boeing"],
+        "ja": ["ボーイング"]
+      }
+    }
+  ]
+}
