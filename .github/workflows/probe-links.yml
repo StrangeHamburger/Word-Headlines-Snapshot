@@ -1,0 +1,40 @@
+name: probe-links
+
+# 只做一件事：实测「CBMi → AU_ token → 真实地址」这条路能不能走通。
+# 结果直接打在 Job Summary 上，不用下 artifact。
+
+on:
+  workflow_dispatch:
+    inputs:
+      count:
+        description: '测试多少条链接'
+        required: false
+        default: '5'
+
+permissions:
+  contents: read
+
+jobs:
+  probe-links:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: 抓一份真实 feed（复用主探针）
+        run: node src/scripts/probe-feeds.mjs --only US,DE,JP
+
+      - name: 实测链接还原
+        continue-on-error: true
+        run: |
+          {
+            echo "## 新格式链接还原实测"
+            echo ""
+            echo '```'
+            node src/scripts/probe-links.mjs --in data/probe/raw-latest.json --count "${{ inputs.count }}" --dump
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
