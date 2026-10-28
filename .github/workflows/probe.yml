@@ -29,7 +29,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       # 先跑离线 fixture：如果这步就挂，说明脚本或 Node 环境有问题，
       # 而不是网络问题——省掉一轮误判。

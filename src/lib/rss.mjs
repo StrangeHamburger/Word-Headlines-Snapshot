@@ -172,11 +172,10 @@ export function classifyLink(link) {
 }
 
 /**
- * 尝试本地解码旧格式（CBMi...）链接。
- * 旧格式的 base64 载荷里明文包含原始 URL，可以直接提取，不需要发请求。
- * @returns {string|null} 原始 URL，失败返回 null
+ * 取出 `/rss/articles/<id>` 的 base64 载荷。
+ * @returns {{ latin: string, bytes: Buffer }|null}
  */
-export function tryDecodeOldLink(link) {
+function decodeArticlePayload(link) {
   const url = safeUrl(link);
   if (!url) return null;
   const pathMatch = /\/rss\/articles\/([^/?#]+)/i.exec(url.pathname);
@@ -193,8 +192,37 @@ export function tryDecodeOldLink(link) {
     return null;
   }
   if (buffer.length === 0) return null;
+  return { latin: buffer.toString('latin1'), bytes: buffer };
+}
 
-  const latin = buffer.toString('latin1');
+/**
+ * 提取 `CBMi...` 载荷内嵌的 `AU_...` token。
+ *
+ * 2024 年之后 Google 的 article id 常是「外层 CBMi 包装 + 内层 AU_ token」：
+ * base64 解开后是 `\x08\x13\x22<len>AU_yqL...` 这样的 protobuf，
+ * **没有明文 URL**，必须拿这个 token 去 batchexecute 才能还原真实地址。
+ * 这种情况下 tryDecodeOldLink 必然返回 null，不能据此认定"链接坏了"。
+ *
+ * @returns {string|null}
+ */
+export function extractInnerToken(link) {
+  const payload = decodeArticlePayload(link);
+  if (!payload) return null;
+  const match = /AU_[A-Za-z0-9_-]{10,}/.exec(payload.latin);
+  return match ? match[0] : null;
+}
+
+/**
+ * 尝试本地解码旧格式（CBMi...）链接。
+ * 旧格式的 base64 载荷里明文包含原始 URL，可以直接提取，不需要发请求。
+ * 若返回 null，应再用 extractInnerToken 判断是否属于"包装 AU"形态。
+ * @returns {string|null} 原始 URL，失败返回 null
+ */
+export function tryDecodeOldLink(link) {
+  const payload = decodeArticlePayload(link);
+  if (!payload) return null;
+  const { latin } = payload;
+
   const start = latin.search(/https?:\/\//i);
   if (start < 0) return null;
 

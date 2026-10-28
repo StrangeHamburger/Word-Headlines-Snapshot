@@ -25,6 +25,7 @@ import {
   parseRss,
   classifyLink,
   tryDecodeOldLink,
+  extractInnerToken,
   splitTitleSuffix,
   normalizeTitle,
   LINK_FORM,
@@ -212,11 +213,16 @@ async function probeCountry(country, opts) {
     const parsed = parseRss(xml);
     result.channelTitle = parsed.channelTitle;
     result.rawItemCount = parsed.rawItemCount;
-    result.items = parsed.items.map((item) => ({
-      ...item,
-      linkForm: classifyLink(item.link),
-      decodedUrl: classifyLink(item.link) === LINK_FORM.OLD_BASE64 ? tryDecodeOldLink(item.link) : null,
-    }));
+    result.items = parsed.items.map((item) => {
+      const linkForm = classifyLink(item.link);
+      const decodedUrl = linkForm === LINK_FORM.OLD_BASE64 ? tryDecodeOldLink(item.link) : null;
+      return {
+        ...item,
+        linkForm,
+        decodedUrl,
+        innerToken: linkForm === LINK_FORM.OLD_BASE64 && !decodedUrl ? extractInnerToken(item.link) : null,
+      };
+    });
     result.itemCount = result.items.length;
     result.ok = result.itemCount > 0;
   } catch (error) {
@@ -271,6 +277,7 @@ function computeStats(country) {
       suffixRatio: 0,
       linkForms: {},
       oldDecode: { tried: 0, ok: 0, ratio: 0 },
+      linkModes: { plain: 0, wrappedAu: 0, auDirect: 0, unknown: 0 },
     };
   }
 
@@ -285,6 +292,9 @@ function computeStats(country) {
 
   const oldLinks = items.filter((item) => item.linkForm === LINK_FORM.OLD_BASE64);
   const oldOk = oldLinks.filter((item) => item.decodedUrl).length;
+  const wrappedAu = oldLinks.filter((item) => !item.decodedUrl && item.innerToken).length;
+  const unknownOld = oldLinks.length - oldOk - wrappedAu;
+  const auDirect = items.filter((item) => item.linkForm === LINK_FORM.NEW_AU).length;
 
   return {
     total,
@@ -299,6 +309,7 @@ function computeStats(country) {
       ok: oldOk,
       ratio: oldLinks.length ? oldOk / oldLinks.length : 0,
     },
+    linkModes: { plain: oldOk, wrappedAu, auDirect, unknown: unknownOld },
   };
 }
 
@@ -321,7 +332,7 @@ function renderConsoleTable(rows) {
     ['时间', 6],
     ['来源', 6],
     ['后缀', 6],
-    ['旧/新', 9],
+    ['明文/包装/AU', 14],
     ['解码', 6],
     ['ms', 8],
     ['判定', 6],
@@ -333,8 +344,7 @@ function renderConsoleTable(rows) {
 
   for (const row of rows) {
     const stats = row.stats;
-    const oldCount = stats.linkForms[LINK_FORM.OLD_BASE64] || 0;
-    const newCount = stats.linkForms[LINK_FORM.NEW_AU] || 0;
+    const modes = stats.linkModes || { plain: 0, wrappedAu: 0, auDirect: 0, unknown: 0 };
     lines.push(
       [
         pad(row.country.code, 6),
@@ -345,7 +355,7 @@ function renderConsoleTable(rows) {
         pad(`${Math.round(stats.pubDateRatio * 100)}%`, 6, 'right'),
         pad(`${Math.round(stats.sourceRatio * 100)}%`, 6, 'right'),
         pad(`${Math.round(stats.suffixRatio * 100)}%`, 6, 'right'),
-        pad(`${oldCount}/${newCount}`, 9, 'right'),
+        pad(`${modes.plain}/${modes.wrappedAu}/${modes.auDirect}`, 14, 'right'),
         pad(stats.oldDecode.tried ? `${Math.round(stats.oldDecode.ratio * 100)}%` : '-', 6, 'right'),
         pad(row.country.ms, 8, 'right'),
         pad(row.verdict, 6),
@@ -392,7 +402,7 @@ function renderMarkdown(rows, opts, stamp) {
   lines.push('');
   lines.push('## 1. 逐国结果');
   lines.push('');
-  lines.push('| code | 国家 | 地区 | HTTP | 条目 | 原始 item | 唯一率 | 时间 | 来源 | 后缀 | 旧格式/新格式 | 旧格式解码 | ms | 判定 |');
+  lines.push('| code | 国家 | 地区 | HTTP | 条目 | 原始 item | 唯一率 | 时间 | 来源 | 后缀 | 明文/包装/AU | 明文解码 | ms | 判定 |');
   lines.push('|---|---|---|---|---|---|---|---|---|---|---|---|---|---|');
 
   for (const row of rows) {
@@ -401,10 +411,9 @@ function renderMarkdown(rows, opts, stamp) {
       lines.push(`| ${country.code} | ${country.name} | ${country.region} | - | - | - | - | - | - | - | - | - | - | 跳过 |`);
       continue;
     }
-    const oldCount = stats.linkForms[LINK_FORM.OLD_BASE64] || 0;
-    const newCount = stats.linkForms[LINK_FORM.NEW_AU] || 0;
+    const modes = stats.linkModes || { plain: 0, wrappedAu: 0, auDirect: 0, unknown: 0 };
     lines.push(
-      `| ${country.code} | ${country.name} | ${country.region} | ${country.httpStatus ?? '-'} | ${stats.total} | ${country.rawItemCount} | ${Math.round(stats.uniqueRatio * 100)}% | ${Math.round(stats.pubDateRatio * 100)}% | ${Math.round(stats.sourceRatio * 100)}% | ${Math.round(stats.suffixRatio * 100)}% | ${oldCount}/${newCount} | ${stats.oldDecode.tried ? `${Math.round(stats.oldDecode.ratio * 100)}%` : '-'} | ${country.ms} | ${verdict} |`,
+      `| ${country.code} | ${country.name} | ${country.region} | ${country.httpStatus ?? '-'} | ${stats.total} | ${country.rawItemCount} | ${Math.round(stats.uniqueRatio * 100)}% | ${Math.round(stats.pubDateRatio * 100)}% | ${Math.round(stats.sourceRatio * 100)}% | ${Math.round(stats.suffixRatio * 100)}% | ${modes.plain}/${modes.wrappedAu}/${modes.auDirect} | ${stats.oldDecode.tried ? `${Math.round(stats.oldDecode.ratio * 100)}%` : '-'} | ${country.ms} | ${verdict} |`,
     );
   }
 
@@ -424,7 +433,21 @@ function renderMarkdown(rows, opts, stamp) {
   lines.push(`| \`pubDate\` 覆盖 | ${Math.round(weighted((s) => s.pubDateRatio) * 100)}% | 缺失时排序回退 RSS 顺序 |`);
   lines.push(`| \`<source>\` 覆盖 | ${Math.round(weighted((s) => s.sourceRatio) * 100)}% | 缺失时需要从标题后缀剥离 |`);
   lines.push(`| 标题" - 发布方"后缀 | ${Math.round(weighted((s) => s.suffixRatio) * 100)}% | 用于校验 §6.3 的剥离假设 |`);
-  lines.push(`| 旧格式本地解码率 | ${oldTried ? `${Math.round((oldOk / oldTried) * 100)}%（${oldOk}/${oldTried}）` : '无旧格式链接'} | 高则可省掉 HEAD 请求 |`);
+  const allModes = activeRows.reduce(
+    (acc, row) => {
+      const m = row.stats.linkModes || {};
+      acc.plain += m.plain || 0;
+      acc.wrappedAu += m.wrappedAu || 0;
+      acc.auDirect += m.auDirect || 0;
+      acc.unknown += m.unknown || 0;
+      return acc;
+    },
+    { plain: 0, wrappedAu: 0, auDirect: 0, unknown: 0 },
+  );
+  lines.push(`| 明文 URL 解码率 | ${oldTried ? `${Math.round((oldOk / oldTried) * 100)}%（${oldOk}/${oldTried}）` : '无 CBMi 链接'} | 载荷里直接含 \`http\`，可离线还原 |`);
+  lines.push(`| **CBMi 内嵌 \`AU_\` token** | **${allModes.wrappedAu} 条** | **>0 说明这些链接必须走 \`batchexecute\` 才能拿到真实地址（§6.4.1 第 3 步），本地解不出属正常** |`);
+  lines.push(`| 直接 \`AU_\` 链接 | ${allModes.auDirect} 条 | 已是新格式，无需解包装 |`);
+  lines.push(`| 完全无法识别 | ${allModes.unknown} 条 | 载荷里既无 \`http\` 也无 \`AU_\`，需要人工看样本 |`);
 
   const formEntries = Object.entries(allLinkForms).sort((a, b) => b[1] - a[1]);
   lines.push('');
@@ -447,10 +470,12 @@ function renderMarkdown(rows, opts, stamp) {
     }
   }
 
-  if (opts.head) {
-    lines.push('');
-    lines.push('## 4. 新格式 HEAD 探测');
-    lines.push('');
+  lines.push('');
+  lines.push('## 4. 新格式 HEAD 探测');
+  lines.push('');
+  if (!opts.head) {
+    lines.push('本次未开启（未传 `--head`）。若 §2 的"内嵌 `AU_` token"条数为 0，则不需要它；若 > 0，需用它判断能否靠 HEAD 跳转还原。');
+  } else {
     lines.push('| code | 探测数 | 可还原 | 样本 |');
     lines.push('|---|---|---|---|');
     for (const row of activeRows) {

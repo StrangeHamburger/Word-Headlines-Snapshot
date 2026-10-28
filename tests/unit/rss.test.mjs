@@ -5,6 +5,7 @@ import {
   parseRss,
   classifyLink,
   tryDecodeOldLink,
+  extractInnerToken,
   splitTitleSuffix,
   decodeEntities,
   LINK_FORM,
@@ -84,4 +85,35 @@ test('splitTitleSuffix 剥离已知来源后缀', () => {
   assert.equal(splitTitleSuffix('Hello - Other', 'Reuters').title, 'Hello - Other');
   // 无后缀
   assert.equal(splitTitleSuffix('Plain title', '').title, 'Plain title');
+});
+
+/** 构造「CBMi 包装 + 内嵌 AU_ token」的链接（2024 年后的真实形态）。 */
+function makeWrappedLink(token) {
+  const payload = Buffer.concat([
+    Buffer.from([0x08, 0x13, 0x22, Buffer.byteLength(token, 'ascii')]),
+    Buffer.from(token, 'ascii'),
+  ]);
+  const id = payload.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  return `https://news.google.com/rss/articles/${id}?oc=5`;
+}
+
+test('extractInnerToken 能取回 CBMi 内嵌的 AU_ token', () => {
+  const token = 'AU_yqL9Xk3mQ7vRt2Bc5Nd8Fg1Hj4Kl6';
+  const link = makeWrappedLink(token);
+
+  assert.equal(classifyLink(link), LINK_FORM.OLD_BASE64, '外层前缀仍是 CBMi');
+  // 关键：这种载荷里没有明文 URL，离线解不出来是正常的
+  assert.equal(tryDecodeOldLink(link), null);
+  assert.equal(extractInnerToken(link), token);
+});
+
+test('extractInnerToken 对明文 URL 载荷返回 null', () => {
+  const link = makeOldLink('https://www.reuters.com/world/example-12345');
+  assert.equal(extractInnerToken(link), null);
+});
+
+test('extractInnerToken 对非 Google 链接与垃圾输入返回 null', () => {
+  assert.equal(extractInnerToken('https://www.spiegel.de/politik/x'), null);
+  assert.equal(extractInnerToken(''), null);
+  assert.equal(extractInnerToken('not a url'), null);
 });
