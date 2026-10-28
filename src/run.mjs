@@ -331,6 +331,19 @@ async function main() {
     item.consensusRatio = denominator ? Number((item.consensusCount / denominator).toFixed(3)) : null;
   }
 
+  // 同国同事件只保留排名最靠前的一条：
+  // displayItems 里存的是 eventId，若同国存在两条同 eventId 的条目，
+  // 渲染层按 eventId 回查只能拿到其中一条，另一条会被当成"没有链接"。
+  // 共识计数本来就按国家去重，删掉重复不影响统计。
+  for (const entry of perCountry) {
+    const seenEvents = new Set();
+    entry.items = entry.items.filter((item) => {
+      if (seenEvents.has(item.eventId)) return false;
+      seenEvents.add(item.eventId);
+      return true;
+    });
+  }
+
   // ---------------------------------------------------------------- 翻译（≤ 展示项 + 共识标签）
   const translator = createTranslator({ provider: opts.translate });
   const consensusCandidate = keptClusters

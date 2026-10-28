@@ -19,8 +19,10 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
+import { buildEntityIndex, numbersOf, scorePair } from '../lib/cluster.mjs';
+import { GATE_COS } from '../lib/constants.mjs';
+
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
-const GATE_COS = 0.86;
 const TARGET_PRECISION = 0.9;
 const MIN_LABELED = 50;
 
@@ -118,62 +120,19 @@ function parseLabel(raw) {
 }
 
 // ---------------------------------------------------------------- 相似度信号
+//
+// 一律复用 src/lib/cluster.mjs 的生产实现。
+// 这里曾经有一份自己复制的 scorePair：门槛后来改了（数字需 ≥2 个才放行、
+// 实体放行需余弦 floor），那份副本完全不知情——用副本校准出来的阈值，
+// 测的不是线上跑的那个函数，结论必然是假的。
 
-function numbersOf(title) {
-  const set = new Set();
-  for (const match of String(title).matchAll(/\d{1,4}/g)) set.add(match[0]);
-  return set;
+let entitiesOf = () => new Set();
+
+/** 载入生产的实体别名表（多语言），CJK 标题也能命中。 */
+async function loadEntities() {
+  const config = JSON.parse(await readFile(path.join(ROOT, 'src/config/entities.json'), 'utf8'));
+  entitiesOf = buildEntityIndex(config);
 }
-
-function entitiesOf(title) {
-  // 代理实现：production 用 src/config/entities.json 的多语言别名表。
-  // 这里只取拉丁字母 token，因此对 CJK 标题覆盖率低——报告里会标注这个局限。
-  const set = new Set();
-  for (const match of String(title).matchAll(/[A-Za-z][A-Za-z0-9''-]{2,}/g)) {
-    const token = match[0].toLowerCase();
-    if (token.length >= 3 && !STOPWORDS.has(token)) set.add(token);
-  }
-  return set;
-}
-
-function scorePair(cosine, a, b) {
-  const bothEntities = a.entities.size > 0 && b.entities.size > 0;
-  const bothNumbers = a.numbers.size > 0 && b.numbers.size > 0;
-
-  let entityScore = 0;
-  if (bothEntities) {
-    let shared = 0;
-    for (const token of a.entities) if (b.entities.has(token)) shared += 1;
-    entityScore = shared / Math.min(a.entities.size, b.entities.size);
-  }
-
-  let numberScore = 0;
-  if (bothNumbers) {
-    let shared = 0;
-    for (const token of a.numbers) if (b.numbers.has(token)) shared += 1;
-    numberScore = shared / Math.max(a.numbers.size, b.numbers.size);
-  }
-
-  let weight = 0.78;
-  let weighted = 0.78 * cosine;
-  if (bothEntities) {
-    weight += 0.14;
-    weighted += 0.14 * entityScore;
-  }
-  if (bothNumbers) {
-    weight += 0.08;
-    weighted += 0.08 * numberScore;
-  }
-
-  const sim = weighted / weight;
-  const gate =
-    cosine >= GATE_COS ||
-    (bothEntities && entityScore >= 0.5) ||
-    (bothNumbers && numberScore >= 0.5);
-
-  return { cosine, entityScore, numberScore, sim, gate };
-}
-
 // ---------------------------------------------------------------- provider
 
 function charNgramCosine(textA, textB, n = 3) {
@@ -369,6 +328,8 @@ async function main() {
     process.stdout.write('\n');
   }
 
+  await loadEntities();
+
   // 逐对打分
   const scored = records.map((record) => {
     let cosine;
@@ -380,7 +341,10 @@ async function main() {
     const a = { entities: entitiesOf(record.titleA), numbers: numbersOf(record.titleA) };
     const b = { entities: entitiesOf(record.titleB), numbers: numbersOf(record.titleB) };
     const signals = scorePair(cosine, a, b);
-    return { ...record, ...signals };
+    // 把"实体/数字单独放行"的结论固定下来：扫 gateCos 时只能改余弦这一路，
+    // 另两路的判定与生产完全一致（否则扫出来的 gate 不是线上那个 gate）。
+    const { gate: signalGate } = scorePair(cosine, a, b, { gateCos: Infinity });
+    return { ...record, ...signals, signalGate };
   });
 
   const thresholds = [];
@@ -416,7 +380,7 @@ async function main() {
     let fp = 0;
     let fn = 0;
     for (const pair of scored) {
-      const gate = pair.cosine >= gateCos || pair.entityScore >= 0.5 || pair.numberScore >= 0.5;
+      const gate = pair.cosine >= gateCos || pair.signalGate;
       const predicted = gate && pair.sim >= operatingPoint;
       if (predicted && pair.label === 1) tp += 1;
       else if (predicted && pair.label === 0) fp += 1;
