@@ -1,0 +1,42 @@
+{
+  "_readme": [
+    "这是内容筛查的【机制】，不是【清单】。仓库里不放地域性、政治性词条。",
+    "默认全部规则为 soft（只标记、待人工确认），不会自动删掉任何条目。",
+    "hard 规则会被自动剔除且不进入人工流程，必须少而准——误杀会直接改变共识数字。",
+    "地域性/时效性规则写在 src/config/sensitive.local.json（已 gitignore），结构与本文件相同，运行时合并。",
+    "词条由运营者负责。本文件里的三条只是通用内容安全示例，可以直接删掉换成自己的。",
+    "改完务必跑：node src/scripts/screen-preview.mjs --check"
+  ],
+  "version": 1,
+  "rules": [
+    {
+      "id": "example-graphic-violence",
+      "kind": "term",
+      "severity": "soft",
+      "langs": ["*"],
+      "note": "示例：极端血腥描述。按需替换成本地口径。",
+      "terms": ["beheading", "dismembered", "mutilated"]
+    },
+    {
+      "id": "example-self-harm",
+      "kind": "term",
+      "severity": "soft",
+      "langs": ["*"],
+      "note": "示例：自伤方法类内容，不适合作为新闻标题展示。",
+      "terms": ["how to kill yourself", "suicide method"]
+    },
+    {
+      "id": "example-minor-victim",
+      "kind": "regex",
+      "severity": "soft",
+      "langs": ["*"],
+      "note": "示例：受害者身份为未成年人且可识别时的谨慎处理。",
+      "pattern": "(minor|underage|child)\\s+(victim|abuse)",
+      "flags": "iu"
+    }
+  ],
+  "whitelist": {
+    "_readme": "命中白名单的 soft 规则会被忽略；hard 规则不受白名单影响。用于压掉明显的误报。",
+    "terms": []
+  }
+}

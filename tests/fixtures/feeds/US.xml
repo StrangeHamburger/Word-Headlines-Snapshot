@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Top stories - US</title>
+    <link>https://news.google.com/?hl=US</link>
+    <description>fixture for offline probe testing</description>
+    <item>
+      <title>Trump announces new tariff package on imported vehicles - Reuters</title>
+      <link>https://news.google.com/rss/articles/CBMiMWh0dHBzOi8vd3d3LnJldXRlcnMuZXhhbXBsZS5jb20vbmV3cy9hcnRpY2xlLXVzLTEIAQ?oc=5</link>
+      <guid isPermaLink="false">bb5402f3-f822-40a2-9c1f-0eed18401827</guid>
+      <pubDate>Mon, 27 Oct 2026 22:10:00 GMT</pubDate>
+      <description>&lt;a href="https://example.com"&gt;summary&lt;/a&gt;</description>
+      <source url="https://www.reuters.example.com">Reuters</source>
+    </item>
+    <item>
+      <title>Federal Reserve holds rates steady amid inflation concerns - AP</title>
+      <link>https://news.google.com/rss/articles/CBMiLGh0dHBzOi8vd3d3LmFwLmV4YW1wbGUuY29tL25ld3MvYXJ0aWNsZS11cy0yCAE?oc=5</link>
+      <guid isPermaLink="false">af437b53-6c19-4fcc-a563-1d774837a243</guid>
+      <pubDate>Mon, 27 Oct 2026 21:10:00 GMT</pubDate>
+      <description>&lt;a href="https://example.com"&gt;summary&lt;/a&gt;</description>
+      <source url="https://www.ap.example.com">AP</source>
+    </item>
+    <item>
+      <title>Hurricane warning issued for Gulf Coast states - CNN</title>
+      <link>https://news.google.com/rss/articles/CBMiLWh0dHBzOi8vd3d3LmNubi5leGFtcGxlLmNvbS9uZXdzL2FydGljbGUtdXMtMwgB?oc=5</link>
+      <guid isPermaLink="false">3954e951-0793-40aa-bbd3-a4c791bf90cd</guid>
+      <pubDate>Mon, 27 Oct 2026 20:10:00 GMT</pubDate>
+      <description>&lt;a href="https://example.com"&gt;summary&lt;/a&gt;</description>
+      <source url="https://www.cnn.example.com">CNN</source>
+    </item>
+    <item>
+      <title>Senate passes bipartisan infrastructure bill - Politico</title>
+      <link>https://news.google.com/rss/articles/CBMiMmh0dHBzOi8vd3d3LnBvbGl0aWNvLmV4YW1wbGUuY29tL25ld3MvYXJ0aWNsZS11cy00CAE?oc=5</link>
+      <guid isPermaLink="false">9476835c-49e4-4b0f-8dc6-a2a00f19c1d4</guid>
+      <pubDate>Mon, 26 Oct 2026 19:10:00 GMT</pubDate>
+      <description>&lt;a href="https://example.com"&gt;summary&lt;/a&gt;</description>
+      <source url="https://www.politico.example.com">Politico</source>
+    </item>
+    <item>
+      <title>Apple unveils new AI chip for data centers - The Verge</title>
+      <link>https://news.google.com/rss/articles/CBMiMmh0dHBzOi8vd3d3LnRoZXZlcmdlLmV4YW1wbGUuY29tL25ld3MvYXJ0aWNsZS11cy01CAE?oc=5</link>
+      <guid isPermaLink="false">61b39bc8-5723-4492-aa9f-33d3fd54279f</guid>
+      <description>&lt;a href="https://example.com"&gt;summary&lt;/a&gt;</description>
+      <source url="https://www.theverge.example.com">The Verge</source>
+    </item>
+    <item>
+      <title>Wildfire smoke triggers air quality alerts across West - NPR</title>
+      <link>https://news.google.com/rss/articles/CBMiLWh0dHBzOi8vd3d3Lm5wci5leGFtcGxlLmNvbS9uZXdzL2FydGljbGUtdXMtNggB?oc=5</link>
+      <guid isPermaLink="false">1504d0e0-aba5-4f6d-94a5-92cb9495df22</guid>
+      <pubDate>Mon, 26 Oct 2026 17:10:00 GMT</pubDate>
+      <description>&lt;a href="https://example.com"&gt;summary&lt;/a&gt;</description>
+      <source url="https://www.npr.example.com">NPR</source>
+    </item>
+    <item>
+      <title>NBA season opens with record attendance - ESPN</title>
+      <link>https://news.google.com/rss/articles/CBMiLmh0dHBzOi8vd3d3LmVzcG4uZXhhbXBsZS5jb20vbmV3cy9hcnRpY2xlLXVzLTcIAQ?oc=5</link>
+      <guid isPermaLink="false">d1cb0d53-e2a5-44bd-acd0-33434de52b5a</guid>
+      <pubDate>Mon, 26 Oct 2026 16:10:00 GMT</pubDate>
+      <description>&lt;a href="https://example.com"&gt;summary&lt;/a&gt;</description>
+      <source url="https://www.espn.example.com">ESPN</source>
+    </item>
+    <item>
+      <title>Stanford study links sleep loss to heart disease - Healthline</title>
+      <link>https://news.google.com/rss/articles/CBMiNGh0dHBzOi8vd3d3LmhlYWx0aGxpbmUuZXhhbXBsZS5jb20vbmV3cy9hcnRpY2xlLXVzLTgIAQ?oc=5</link>
+      <guid isPermaLink="false">a0a9fcac-34e9-4f23-a4fb-60c503ecc5f3</guid>
+      <pubDate>Mon, 26 Oct 2026 15:10:00 GMT</pubDate>
+      <description>&lt;a href="https://example.com"&gt;summary&lt;/a&gt;</description>
+      <source url="https://www.healthline.example.com">Healthline</source>
+    </item>
+    <item>
+      <title>Local election results show split outcomes - USA Today</title>
+      <link>https://news.google.com/rss/articles/AU_yqLVVMtOS0xNTk1NTU0ODIw?oc=5</link>
+      <guid isPermaLink="false">879670cf-6088-4ef9-9d18-f0174e0c86fa</guid>
+      <pubDate>Mon, 25 Oct 2026 14:10:00 GMT</pubDate>
+      <description>&lt;a href="https://example.com"&gt;summary&lt;/a&gt;</description>
+    </item>
+    <item>
+      <title>Tech layoffs continue as firms restructure - Bloomberg</title>
+      <link>https://news.google.com/rss/articles/AU_yqLVVMtMTAtMTY0OTg4Njk4Mw?oc=5</link>
+      <guid isPermaLink="false">e236eb6b-d39d-4d75-8bdb-7ce2a5632234</guid>
+      <pubDate>Mon, 25 Oct 2026 13:10:00 GMT</pubDate>
+      <description>&lt;a href="https://example.com"&gt;summary&lt;/a&gt;</description>
+      <source url="https://www.bloomberg.example.com">Bloomberg</source>
+    </item>
+    <item>
+      <title>New high-speed rail line breaks ground in Texas - Dallas News</title>
+      <link>https://news.google.com/rss/articles/AU_yqLVVMtMTEtMTg5MTEzNzg4MQ?oc=5</link>
+      <guid isPermaLink="false">fdf1d628-f4dd-4a78-ab9f-94ad282e853d</guid>
+      <pubDate>Mon, 25 Oct 2026 12:10:00 GMT</pubDate>
+      <description>&lt;a href="https://example.com"&gt;summary&lt;/a&gt;</description>
+      <source url="https://www.dallasnews.example.com">Dallas News</source>
+    </item>
+    <item>
+      <title>Museum returns contested artifacts to origin country - Artnet</title>
+      <link>https://news.google.com/rss/articles/AU_yqLVVMtMTItMTk4NDAyODQ5NQ?oc=5</link>
+      <guid isPermaLink="false">a9a30f6e-2896-4604-97d5-eef2a8a08ccb</guid>
+      <pubDate>Mon, 25 Oct 2026 11:10:00 GMT</pubDate>
+      <description>&lt;a href="https://example.com"&gt;summary&lt;/a&gt;</description>
+      <source url="https://www.artnet.example.com">Artnet</source>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,63 @@
+name: probe
+
+# 探针：量出 Google News 到底返回什么（放行条件 1）
+#
+# 为什么在 Actions 里跑而不是本地挂 VPN：
+#   生产抓取就跑在 GitHub 的海外 runner 上。在这里跑，验证的是"流水线能不能取到数"；
+#   在本地挂 VPN 跑，验证的是"我的笔记本能不能取到数"——后者对上线没有意义。
+#   顺带还能确认 GitHub 的 runner 没被 Google 拦（这是生产成立的前提）。
+
+on:
+  workflow_dispatch:
+    inputs:
+      args:
+        description: '传给 probe-feeds.mjs 的参数'
+        required: false
+        default: '--all'
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # 先跑离线 fixture：如果这步就挂，说明脚本或 Node 环境有问题，
+      # 而不是网络问题——省掉一轮误判。
+      - name: 自检（离线 fixture）
+        run: node src/scripts/probe-feeds.mjs --only US,DE --fixture tests/fixtures/feeds
+
+      # 真跑。失败也继续，因为失败本身就是结论（要看清是超时、状态码还是解析失败）。
+      - name: 探测真实网络
+        continue-on-error: true
+        run: node src/scripts/probe-feeds.mjs ${{ inputs.args }}
+
+      - name: 报告写进 Job Summary
+        if: always()
+        run: |
+          if [ -f docs/probe-report.md ]; then
+            head -100 docs/probe-report.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "没有生成报告：脚本在更早的地方就退出了。" >> "$GITHUB_STEP_SUMMARY"
+            echo "先看'自检（离线 fixture）'那一步是否通过。" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: 上传产物
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: probe-output
+          path: |
+            docs/probe-report.md
+            data/probe/*.json
+          if-no-files-found: warn
+          retention-days: 30

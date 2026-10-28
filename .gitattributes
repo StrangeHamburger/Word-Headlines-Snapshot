@@ -1,0 +1,5 @@
+# 统一换行，避免 Windows 本地与 Linux runner 之间产生无意义 diff
+* text=auto eol=lf
+
+# 数据文件不做行级 diff 展示（体积大、结构稳定，diff 没信息量）
+data/**/*.json -diff

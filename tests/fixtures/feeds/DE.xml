@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Top stories - DE</title>
+    <link>https://news.google.com/?hl=DE</link>
+    <description>fixture for offline probe testing</description>
+    <item>
+      <title>Trump kündigt neue Zölle auf importierte Fahrzeuge an - Spiegel</title>
+      <link>https://news.google.com/rss/articles/CBMiMWh0dHBzOi8vd3d3LnNwaWVnZWwuZXhhbXBsZS5jb20vbmV3cy9hcnRpY2xlLWRlLTEIAQ?oc=5</link>
+      <guid isPermaLink="false">8dc84e77-8d14-47fe-8729-240649688760</guid>
+      <pubDate>Mon, 27 Oct 2026 22:10:00 GMT</pubDate>
+      <description>&lt;a href="https://example.com"&gt;summary&lt;/a&gt;</description>
+      <source url="https://www.spiegel.example.com">Spiegel</source>
+    </item>
+    <item>
+      <title>EZB hält Leitzins unverändert - Handelsblatt</title>
+      <link>https://news.google.com/rss/articles/CBMiNmh0dHBzOi8vd3d3LmhhbmRlbHNibGF0dC5leGFtcGxlLmNvbS9uZXdzL2FydGljbGUtZGUtMggB?oc=5</link>
+      <guid isPermaLink="false">4e83946a-0f96-45d1-940b-11c8fb79b970</guid>
+      <pubDate>Mon, 27 Oct 2026 21:10:00 GMT</pubDate>
+      <description>&lt;a href="https://example.com"&gt;summary&lt;/a&gt;</description>
+      <source url="https://www.handelsblatt.example.com">Handelsblatt</source>
+    </item>
+    <item>
+      <title>Orkanwarnung für die Golfküste - tagesschau</title>
+      <link>https://news.google.com/rss/articles/CBMiNGh0dHBzOi8vd3d3LnRhZ2Vzc2NoYXUuZXhhbXBsZS5jb20vbmV3cy9hcnRpY2xlLWRlLTMIAQ?oc=5</link>
+      <guid isPermaLink="false">f79bdd66-c4ae-4764-bb92-7262ca78dbd6</guid>
+      <pubDate>Mon, 27 Oct 2026 20:10:00 GMT</pubDate>
+      <description>&lt;a href="https://example.com"&gt;summary&lt;/a&gt;</description>
+      <source url="https://www.tagesschau.example.com">tagesschau</source>
+    </item>
+    <item>
+      <title>Bundestag beschließt Infrastrukturpaket - Zeit Online</title>
+      <link>https://news.google.com/rss/articles/CBMiNGh0dHBzOi8vd3d3LnplaXRvbmxpbmUuZXhhbXBsZS5jb20vbmV3cy9hcnRpY2xlLWRlLTQIAQ?oc=5</link>
+      <guid isPermaLink="false">f60dcaf8-fdef-480e-96fe-f780cd047205</guid>
+      <pubDate>Mon, 26 Oct 2026 19:10:00 GMT</pubDate>
+      <description>&lt;a href="https://example.com"&gt;summary&lt;/a&gt;</description>
+      <source url="https://www.zeitonline.example.com">Zeit Online</source>
+    </item>
+    <item>
+      <title>Apple stellt neuen KI-Chip vor - Heise</title>
+      <link>https://news.google.com/rss/articles/CBMiL2h0dHBzOi8vd3d3LmhlaXNlLmV4YW1wbGUuY29tL25ld3MvYXJ0aWNsZS1kZS01CAE?oc=5</link>
+      <guid isPermaLink="false">9cb1f809-36c6-41e9-80e8-81d20f0c6c1e</guid>
+      <description>&lt;a href="https://example.com"&gt;summary&lt;/a&gt;</description>
+      <source url="https://www.heise.example.com">Heise</source>
+    </item>
+    <item>
+      <title>Waldbrände lösen Gesundheitswarnungen aus - Süddeutsche</title>
+      <link>https://news.google.com/rss/articles/CBMiNGh0dHBzOi8vd3d3LnNkZGV1dHNjaGUuZXhhbXBsZS5jb20vbmV3cy9hcnRpY2xlLWRlLTYIAQ?oc=5</link>
+      <guid isPermaLink="false">93d22c3c-5680-4417-b722-034d5d8dd690</guid>
+      <pubDate>Mon, 26 Oct 2026 17:10:00 GMT</pubDate>
+      <description>&lt;a href="https://example.com"&gt;summary&lt;/a&gt;</description>
+      <source url="https://www.sddeutsche.example.com">Süddeutsche</source>
+    </item>
+    <item>
+      <title>Basketball-Saison startet mit Rekordzuschauern - Kicker</title>
+      <link>https://news.google.com/rss/articles/CBMiMGh0dHBzOi8vd3d3LmtpY2tlci5leGFtcGxlLmNvbS9uZXdzL2FydGljbGUtZGUtNwgB?oc=5</link>
+      <guid isPermaLink="false">25f4ca4d-7654-4af2-b3df-c6421a2ac8b3</guid>
+      <pubDate>Mon, 26 Oct 2026 16:10:00 GMT</pubDate>
+      <description>&lt;a href="https://example.com"&gt;summary&lt;/a&gt;</description>
+      <source url="https://www.kicker.example.com">Kicker</source>
+    </item>
+    <item>
+      <title>Studie: Schlafmangel erhöht Herzrisiko - Ärzteblatt</title>
+      <link>https://news.google.com/rss/articles/CBMiM2h0dHBzOi8vd3d3LnJ6dGVibGF0dC5leGFtcGxlLmNvbS9uZXdzL2FydGljbGUtZGUtOAgB?oc=5</link>
+      <guid isPermaLink="false">e6107ece-0ddb-49f9-aaeb-cfdde7f3a66c</guid>
+      <pubDate>Mon, 26 Oct 2026 15:10:00 GMT</pubDate>
+      <description>&lt;a href="https://example.com"&gt;summary&lt;/a&gt;</description>
+      <source url="https://www.rzteblatt.example.com">Ärzteblatt</source>
+    </item>
+    <item>
+      <title>Kommunalwahl zeigt gespaltene Ergebnisse - FAZ</title>
+      <link>https://news.google.com/rss/articles/AU_yqLREUtOS0yMjA0MTA0NTA?oc=5</link>
+      <guid isPermaLink="false">7661b5dc-ad0f-4ed0-8208-47a1bee479d6</guid>
+      <pubDate>Mon, 25 Oct 2026 14:10:00 GMT</pubDate>
+      <description>&lt;a href="https://example.com"&gt;summary&lt;/a&gt;</description>
+    </item>
+    <item>
+      <title>Technologiekonzerne bauen weiter Stellen ab - Handelsblatt</title>
+      <link>https://news.google.com/rss/articles/AU_yqLREUtMTAtOTA1ODUzNw?oc=5</link>
+      <guid isPermaLink="false">c760515b-f1da-4327-b016-59b365877cd4</guid>
+      <pubDate>Mon, 25 Oct 2026 13:10:00 GMT</pubDate>
+      <description>&lt;a href="https://example.com"&gt;summary&lt;/a&gt;</description>
+      <source url="https://www.handelsblatt.example.com">Handelsblatt</source>
+    </item>
+    <item>
+      <title>Neue Schnellbahnstrecke in Texas gestartet - Bahnblog</title>
+      <link>https://news.google.com/rss/articles/AU_yqLREUtMTEtMTA1NTI2NDI5Nw?oc=5</link>
+      <guid isPermaLink="false">2f1516c0-808c-4546-bb44-319862490dc4</guid>
+      <pubDate>Mon, 25 Oct 2026 12:10:00 GMT</pubDate>
+      <description>&lt;a href="https://example.com"&gt;summary&lt;/a&gt;</description>
+      <source url="https://www.bahnblog.example.com">Bahnblog</source>
+    </item>
+    <item>
+      <title>Museum gibt umstrittene Artefakte zurück - Monopol</title>
+      <link>https://news.google.com/rss/articles/AU_yqLREUtMTItMzYzMjIzMDY2?oc=5</link>
+      <guid isPermaLink="false">6d5ddd98-e58d-4413-b8b5-337b52036d38</guid>
+      <pubDate>Mon, 25 Oct 2026 11:10:00 GMT</pubDate>
+      <description>&lt;a href="https://example.com"&gt;summary&lt;/a&gt;</description>
+      <source url="https://www.monopol.example.com">Monopol</source>
+    </item>
+  </channel>
+</rss>

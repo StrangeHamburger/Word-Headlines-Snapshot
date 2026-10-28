@@ -1,0 +1,25 @@
+# 依赖与模型缓存
+node_modules/
+.cache/
+
+# 运行时产物
+data/probe/
+data/tmp/
+data/cache/
+data/review/
+data/snapshots/
+data/state/
+data/latest.json
+data/status.json
+dist/
+
+# 筛查的本地规则（含地域性词条，不入库）
+src/config/sensitive.local.json
+
+# 校准的中间结果（报告与标注 CSV 需要提交，得分表不需要）
+docs/calibration-scores.csv
+
+# 系统文件
+.DS_Store
+Thumbs.db
+*.log
