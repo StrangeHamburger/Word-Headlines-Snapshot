@@ -2,11 +2,9 @@
 /**
  * 验证「新格式链接能否还原」——只做实测，不做假设。
  *
- * 分三步打印每一步的真实结果，失败时 dump 原始响应片段，
- * 这样一次运行就能判断该改哪里，不用来回猜。
- *
  *   node src/scripts/probe-links.mjs --in data/probe/raw-latest.json --count 5
- *   node src/scripts/probe-links.mjs --in <file> --count 8 --dump
+ *   node src/scripts/probe-links.mjs --in <file> --count 8 --single   # 逐条请求，排除批量顺序干扰
+ *   node src/scripts/probe-links.mjs --in <file> --dump
  */
 
 import { readFile } from 'node:fs/promises';
@@ -21,14 +19,15 @@ const UA =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
 
 function parseArgs(argv) {
-  const opts = { input: 'data/probe/raw-latest.json', count: 5, dump: false };
+  const opts = { input: 'data/probe/raw-latest.json', count: 5, dump: false, single: false };
   for (let i = 2; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === '--in') opts.input = argv[++i] || opts.input;
     else if (arg === '--count') opts.count = Math.max(1, Number(argv[++i]) || 1);
     else if (arg === '--dump') opts.dump = true;
+    else if (arg === '--single') opts.single = true;
     else if (arg === '--help' || arg === '-h') {
-      console.log('用法: node src/scripts/probe-links.mjs [--in file] [--count n] [--dump]');
+      console.log('用法: node src/scripts/probe-links.mjs [--in file] [--count n] [--single] [--dump]');
       process.exit(0);
     } else {
       console.error(`未知参数：${arg}`);
@@ -41,6 +40,43 @@ function parseArgs(argv) {
 function truncate(text, length = 700) {
   const value = String(text ?? '');
   return value.length > length ? `${value.slice(0, length)}…（共 ${value.length} 字符）` : value;
+}
+
+/** 页面自己的标题，用来确认"这个页面到底是不是这条文章"。 */
+function pageTitle(html) {
+  const match = /<title[^>]*>([\s\S]{0,200}?)<\/title>/i.exec(html);
+  return match ? match[1].replace(/\s+/g, ' ').trim() : null;
+}
+
+function countMatches(text, pattern) {
+  const matches = String(text).match(new RegExp(pattern, 'g'));
+  return matches ? matches.length : 0;
+}
+
+async function fetchPage(articleId) {
+  const response = await fetch(`https://news.google.com/rss/articles/${articleId}`, {
+    headers: { 'user-agent': UA, 'accept-language': 'en-US,en;q=0.9' },
+    signal: AbortSignal.timeout(20000),
+    redirect: 'follow',
+  });
+  const text = await response.text();
+  return { status: response.status, text, finalUrl: response.url };
+}
+
+async function batchResolve(entries) {
+  const body = buildFreq(entries);
+  const response = await fetch('https://news.google.com/_/DotsSplashUi/data/batchexecute', {
+    method: 'POST',
+    headers: {
+      'user-agent': UA,
+      'content-type': 'application/x-www-form-urlencoded;charset=UTF-8',
+      'accept-language': 'en-US,en;q=0.9',
+    },
+    body,
+    signal: AbortSignal.timeout(30000),
+  });
+  const text = await response.text();
+  return { status: response.status, text, urls: parseBatchResponse(text), requestBytes: body.length };
 }
 
 async function main() {
@@ -58,138 +94,109 @@ async function main() {
     }
     if (items.length >= opts.count) break;
   }
-
   if (items.length === 0) {
     console.error('raw JSON 里没有 /rss/articles/ 链接');
     process.exit(1);
   }
 
   console.log(`样本 ${items.length} 条，来自 ${path.relative(ROOT, inputPath)}`);
+  console.log(`模式：${opts.single ? '逐条请求（排除批量顺序干扰）' : '一次批量 POST'}`);
   console.log('');
 
   const prepared = [];
-  let sigOk = 0;
-
   for (const item of items) {
     const articleId = articleIdOf(item.link);
-    const line = { country: item.country, articleId: articleId ? `${articleId.slice(0, 18)}…(${articleId.length})` : 'null' };
-
-    // 步骤 1：拿签名与时间戳
+    let line = `[${item.country}] ${articleId ? `${articleId.slice(0, 14)}…(${articleId.length})` : 'null'}`;
     try {
-      const response = await fetch(`https://news.google.com/rss/articles/${articleId}`, {
-        headers: { 'user-agent': UA, 'accept-language': 'en-US,en;q=0.9' },
-        signal: AbortSignal.timeout(20000),
-        redirect: 'follow',
-      });
-      const text = await response.text();
-      const parsed = parseSigTs(text);
-      line.pageStatus = response.status;
-      line.pageBytes = text.length;
-      line.finalUrl = response.url;
+      const page = await fetchPage(articleId);
+      const sigs = countMatches(page.text, 'data-n-a-sg');
+      const parsed = parseSigTs(page.text);
+      const title = pageTitle(page.text);
+      line += `  page=${page.status} ${Math.round(page.text.length / 1024)}KB sigs=${sigs}`;
       if (parsed) {
-        line.sig = `${parsed.signature.slice(0, 16)}…(${parsed.signature.length})`;
-        line.ts = parsed.timestamp;
-        sigOk += 1;
+        line += ` sig=${parsed.signature.slice(0, 12)}… ts=${parsed.timestamp}`;
         prepared.push({ ...item, articleId, ...parsed });
       } else {
-        line.sig = '未找到';
-        if (opts.dump) {
-          const hint = /data-n-a-[a-z]+/i.exec(text);
-          console.log(`  [dump] 页面里 data-n-a-* 的存在性：${hint ? hint[0] : '完全没有'}`);
-          console.log(`  [dump] location: ${response.headers.get('location') || 'none'}`);
-          console.log(`  [dump] head: ${truncate(text.replace(/\s+/g, ' '), 400)}`);
-        }
+        line += ' sig=未找到';
+      }
+      console.log(line);
+      console.log(`     页面标题：${truncate(title || '(无)', 90)}`);
+      console.log(`     RSS 标题：${truncate(item.title, 90)}`);
+      if (opts.dump && sigs > 1) {
+        const all = [...page.text.matchAll(/data-n-a-sg="([^"]+)"/g)].map((m) => m[1].slice(0, 12));
+        console.log(`     [dump] 全部 sig：${all.join(', ')}`);
       }
     } catch (error) {
-      line.pageStatus = `ERR ${error?.cause?.code || error?.message}`;
-      line.sig = '-';
-    }
-
-    console.log(
-      `[${line.country}] ${line.articleId}  page=${line.pageStatus}  ${line.pageBytes || 0}B  sig=${line.sig}${line.ts ? `  ts=${line.ts}` : ''}`,
-    );
-    if (line.finalUrl && line.finalUrl !== `https://news.google.com/rss/articles/${articleId}`) {
-      console.log(`     最终地址：${line.finalUrl.slice(0, 160)}`);
+      console.log(`${line}  ERR ${error?.cause?.code || error?.message}`);
     }
   }
 
   console.log('');
-  console.log(`签名/时间戳成功率：${sigOk}/${items.length}`);
-
+  console.log(`签名/时间戳成功率：${prepared.length}/${items.length}`);
   if (prepared.length === 0) {
-    console.log('');
-    console.log('结论：拿不到 data-n-a-sg / data-n-a-ts，说明这条路走不通，');
-    console.log('      Google 已经改了文章页结构，需要重新找入口。');
+    console.log('结论：拿不到 data-n-a-sg/ts，这条路走不通。');
     process.exit(2);
   }
 
-  // 步骤 2：批量换 URL
   console.log('');
-  const body = buildFreq(prepared);
-  console.log(`batchexecute 请求体 ${body.length} 字节（${prepared.length} 条）`);
-
-  const response = await fetch('https://news.google.com/_/DotsSplashUi/data/batchexecute', {
-    method: 'POST',
-    headers: {
-      'user-agent': UA,
-      'content-type': 'application/x-www-form-urlencoded;charset=UTF-8',
-      'accept-language': 'en-US,en;q=0.9',
-    },
-    body,
-    signal: AbortSignal.timeout(30000),
-  });
-  const text = await response.text();
-  console.log(`batchexecute HTTP ${response.status}，响应 ${text.length} 字节`);
-
-  if (opts.dump && response.status !== 200) {
-    console.log(`[dump] ${truncate(text)}`);
-  }
-
-  if (response.status !== 200) {
-    console.log('');
-    console.log('结论：batchexecute 被拒。可能需要对文章页带 cookie/sig，或换了 RPC id。');
-    process.exit(2);
-  }
-
-  // 步骤 3：逐条抠 URL（响应是一个数组，元素顺序与请求顺序一致）
-  const urls = parseBatchResponse(text);
-  console.log(`解析出 ${urls.length} 条结果（请求 ${prepared.length} 条）`);
-  console.log('');
-
   let ok = 0;
-  prepared.forEach((entry, index) => {
-    const url = urls[index] || null;
-    if (url) {
-      ok += 1;
-      let host = '';
-      try {
-        host = new URL(url).host;
-      } catch {
-        host = '(无法解析)';
+
+  if (opts.single) {
+    // 逐条：彻底排除"顺序错位"这个变量
+    for (const entry of prepared) {
+      const result = await batchResolve([entry]);
+      const url = result.urls.find(Boolean) || null;
+      if (url) {
+        ok += 1;
+        let host = '';
+        try {
+          host = new URL(url).host;
+        } catch {
+          host = '(解析失败)';
+        }
+        console.log(`✅ [${entry.country}] → ${host}   HTTP ${result.status}`);
+        console.log(`   请求：${truncate(entry.title, 62)}`);
+        console.log(`   落地：${truncate(url, 130)}`);
+      } else {
+        console.log(`❌ [${entry.country}] 没抠出 URL   HTTP ${result.status}`);
+        console.log(`   请求：${truncate(entry.title, 62)}`);
+        if (opts.dump) console.log(`   [dump] ${truncate(result.text, 400)}`);
       }
-      console.log(`✅ [${entry.country}] → ${host}`);
-      console.log(`   标题：${String(entry.title).slice(0, 62)}`);
-      console.log(`   ${truncate(url, 140)}`);
-    } else {
-      console.log(`❌ [${entry.country}] 没抠出 URL`);
-      console.log(`   标题：${String(entry.title).slice(0, 62)}`);
-      if (opts.dump) console.log(`   [dump] ${truncate(text, 500)}`);
     }
-  });
+  } else {
+    const result = await batchResolve(prepared);
+    console.log(`batchexecute HTTP ${result.status}，响应 ${result.text.length} 字节`);
+    console.log(
+      `请求 ${prepared.length} 条，解析出 ${result.urls.length} 个元素（其中非空 ${result.urls.filter(Boolean).length} 个）`,
+    );
+    if (result.urls.length !== prepared.length) {
+      console.log('⚠️ 元素数与请求数不一致——说明响应里混了别的元素，不能按下标配对。');
+    }
+    console.log('');
+    prepared.forEach((entry, index) => {
+      const url = result.urls[index] || null;
+      if (url) {
+        ok += 1;
+        let host = '';
+        try {
+          host = new URL(url).host;
+        } catch {
+          host = '(解析失败)';
+        }
+        console.log(`✅ [${entry.country}] → ${host}`);
+        console.log(`   请求：${truncate(entry.title, 62)}`);
+        console.log(`   落地：${truncate(url, 130)}`);
+      } else {
+        console.log(`❌ [${entry.country}] 第 ${index} 个元素为空`);
+        console.log(`   请求：${truncate(entry.title, 62)}`);
+      }
+    });
+  }
 
   const rate = Math.round((ok / prepared.length) * 100);
   console.log('');
   console.log(`还原成功率：${ok}/${prepared.length}（${rate}%）`);
-  console.log('');
-  if (rate >= 95) {
-    console.log('结论：达标（D25 要求 ≥95%）。可以把这条路径接进 run.mjs。');
-  } else if (rate > 0) {
-    console.log('结论：部分成功，需要看失败样本的响应结构。加 --dump 再跑一次。');
-    process.exitCode = 3;
-  } else {
-    console.log('结论：一条都没成。加 --dump 看响应结构再改解析。');
-    process.exitCode = 3;
-  }
+  process.exitCode = rate >= 95 ? 0 : 3;
 }
 
 main().catch((error) => {

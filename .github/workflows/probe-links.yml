@@ -10,6 +10,10 @@ on:
         description: '测试多少条链接'
         required: false
         default: '5'
+      single:
+        description: '逐条请求（true/false），排除批量顺序干扰'
+        required: false
+        default: 'false'
 
 permissions:
   contents: read
@@ -32,7 +36,7 @@ jobs:
         continue-on-error: true
         run: |
           set +e
-          node src/scripts/probe-links.mjs --in data/probe/raw-latest.json --count "${{ inputs.count }}" --dump 2>&1 | tee /tmp/probe-links.txt
+          node src/scripts/probe-links.mjs --in data/probe/raw-latest.json --count "${{ inputs.count }}" ${{ inputs.single == 'true' && '--single' || '' }} --dump 2>&1 | tee /tmp/probe-links.txt
           code=${PIPESTATUS[0]}
           {
             echo "## 新格式链接还原实测"
