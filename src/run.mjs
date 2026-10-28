@@ -37,6 +37,7 @@ import { createEmbedder, cosine } from './lib/embed.mjs';
 import { createTranslator } from './lib/translate.mjs';
 import { renderHtml, findBannedWords } from './lib/render.mjs';
 import { resolveArticleUrls } from './lib/links-new.mjs';
+import { pickSilentEvent } from './lib/silent.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 
@@ -377,6 +378,7 @@ async function main() {
   }
 
   // ---------------------------------------------------------------- 组装每国结果
+  let suppressedClaims = 0;
   const outputCountries = perCountry.map((entry) => {
     const { country, items, feed } = entry;
     const ok = items.length >= MIN_ITEMS_VALID;
@@ -384,26 +386,20 @@ async function main() {
     const displayIds = displayItems.map((item) => item.eventId);
 
     // 未包含：该国没报、但足够多国家在报的簇里挑最大的一个
+    // 未包含：本国确实没报、但足够多国家在报的事件。
+    // 守卫会把"其实报了、只是被归到别的簇"的事件撤掉——宁可不出这个标记，也不能说假话。
     let silentEvent = null;
     if (denominator && items.length >= MIN_ITEMS_FULL) {
-      const tau = tauFor(denominator);
-      const candidates = keptClusters
-        .filter((cluster) => !cluster.reportingCodes.includes(country.code))
-        .filter((cluster) => cluster.reportingCodes.length >= tau)
-        .sort((a, b) => b.reportingCodes.length - a.reportingCodes.length);
-      const top = candidates[0];
-      if (top) {
-        silentEvent = {
-          eventId: top.eventId,
-          label: top.label,
-          labelZh: top.labelZh || null,
-          reportingCountries: top.reportingCodes.length,
-          reportingCodes: top.reportingCodes,
-          threshold: tau,
-          confidence: Number(top.cohesion.toFixed(3)),
-          partialSample: items.length < LIMIT_PER_COUNTRY,
-        };
-      }
+      const result = pickSilentEvent({
+        countryCode: country.code,
+        items,
+        clusters: keptClusters,
+        tau: tauFor(denominator),
+        entitiesOf,
+        cosine,
+      });
+      silentEvent = result.event;
+      suppressedClaims += result.suppressed.length;
     }
 
     return {
@@ -490,6 +486,7 @@ async function main() {
       degraded: degradedReasons.length > 0,
       degradedReasons,
       screening: { mode: SCREEN_MODE, droppedClusters: droppedClusters.size, softHits },
+      silentSuppressed: suppressedClaims,
       denominator,
     },
     topConsensus: consensusCandidate

@@ -14,7 +14,7 @@
     "calibrate": "node src/scripts/calibrate.mjs",
     "screen": "node src/scripts/screen-preview.mjs",
     "screen:check": "node src/scripts/screen-preview.mjs --check",
-    "test": "node --test tests/unit",
+    "test": "node --test tests/unit/*.test.mjs",
     "run": "node src/run.mjs",
     "diag": "node src/scripts/diag-sim.mjs",
     "links": "node src/scripts/check-links.mjs"
