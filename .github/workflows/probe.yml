@@ -41,6 +41,22 @@ jobs:
         continue-on-error: true
         run: node src/scripts/probe-feeds.mjs ${{ inputs.args }}
 
+      # 把载荷结构直接打在 Summary 上，省掉下载 artifact 这一步。
+      - name: 链接载荷结构诊断
+        if: always()
+        continue-on-error: true
+        run: |
+          if [ -f data/probe/raw-latest.json ]; then
+            {
+              echo ""
+              echo "## 链接载荷结构诊断（离线）"
+              echo ""
+              echo '```'
+              node src/scripts/check-links.mjs --in data/probe/raw-latest.json --samples 2
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: 报告写进 Job Summary
         if: always()
         run: |
