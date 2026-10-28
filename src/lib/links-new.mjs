@@ -61,7 +61,11 @@ export function extractUrl(body) {
 
   // 快路径：常见形态 ["garturlres","https://..."]
   const direct = /\[\\?"garturlres\\?",\\?"(https?:[^"\\]+)/.exec(text);
-  if (direct) return unescapeUrl(direct[1]);
+  if (direct) {
+    const candidate = unescapeUrl(direct[1]);
+    // D25：绝不能把 news.google.com 当成落地页
+    if (!/news\.google\.com/i.test(candidate)) return candidate;
+  }
 
   // 慢路径：递归遍历 JSON
   try {
@@ -198,12 +202,27 @@ export async function resolveArticleUrls(items, options = {}) {
         }
         continue;
       }
-      // 响应按行分段，每段对应一条；顺序与请求一致
-      const segments = splitResponseSegments(text);
-      batch.forEach((entry, index) => {
-        const url = extractUrl(segments[index] ?? text);
-        results.set(entry.link, url ? { url, strategy: 'batchexecute' } : { url: null, strategy: 'batchexecute', error: '响应里没找到 URL' });
-      });
+      // 响应是一个 JSON 数组，元素与请求顺序一一对应
+      const urls = parseBatchResponse(text);
+      if (urls.length !== batch.length) {
+        for (const entry of batch) {
+          results.set(entry.link, {
+            url: null,
+            strategy: 'batchexecute',
+            error: `返回条数不匹配：请求 ${batch.length}，解析出 ${urls.length}`,
+          });
+        }
+      } else {
+        batch.forEach((entry, index) => {
+          const url = urls[index];
+          results.set(
+            entry.link,
+            url
+              ? { url, strategy: 'batchexecute' }
+              : { url: null, strategy: 'batchexecute', error: '该条响应里没找到 URL' },
+          );
+        });
+      }
     } catch (error) {
       for (const entry of batch) {
         results.set(entry.link, { url: null, strategy: 'batchexecute', error: String(error?.message || error) });
@@ -214,12 +233,43 @@ export async function resolveArticleUrls(items, options = {}) {
   return results;
 }
 
-/** batchexecute 的响应是 `)]}'` + 多段 JSON，按行切成 N 段。 */
-function splitResponseSegments(text) {
-  const cleaned = String(text || '').replace(/^\)\]\}'/, '');
-  const lines = cleaned
+/**
+ * 解析 batchexecute 的批量响应，返回与请求顺序一致的 URL 数组（失败位为 null）。
+ *
+ * 响应形如：
+ *   )]}'
+ *   [["wrb.fr","Fbv4je","[\"garturlres\",\"https://...\",...]",null,null,null,"generic"], ...]
+ *
+ * 关键：**所有结果在同一个数组里**，元素顺序即请求顺序。
+ * 早先按换行切分是错的——整个响应只有一行，导致每条都取到第一个 URL（六条返回同一个地址）。
+ */
+export function parseBatchResponse(body) {
+  const text = String(body || '').replace(/^\)\]\}'/, '').trim();
+
+  let parsed = null;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    parsed = null;
+  }
+
+  if (Array.isArray(parsed)) {
+    return parsed.map((element) => {
+      if (Array.isArray(element) && element[0] === 'wrb.fr') return extractUrl(element[2]);
+      return extractUrl(element);
+    });
+  }
+
+  // 兜底：多行 JSON 的情形
+  return text
     .split('\n')
     .map((line) => line.trim())
-    .filter((line) => line.startsWith('['));
-  return lines.length > 0 ? lines : [cleaned];
+    .filter((line) => line.startsWith('['))
+    .map((line) => {
+      try {
+        return extractUrl(JSON.parse(line));
+      } catch {
+        return extractUrl(line);
+      }
+    });
 }

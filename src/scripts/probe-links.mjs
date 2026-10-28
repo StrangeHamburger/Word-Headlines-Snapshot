@@ -14,7 +14,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
-import { articleIdOf, parseSigTs, buildFreq, extractUrl } from '../lib/links-new.mjs';
+import { articleIdOf, parseSigTs, buildFreq, parseBatchResponse } from '../lib/links-new.mjs';
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const UA =
@@ -151,19 +151,14 @@ async function main() {
     process.exit(2);
   }
 
-  // 步骤 3：逐条抠 URL
-  const segments = String(text)
-    .replace(/^\)\]\}'/, '')
-    .split('\n')
-    .map((line) => line.trim())
-    .filter((line) => line.startsWith('['));
-
-  console.log(`响应切成 ${segments.length} 段`);
+  // 步骤 3：逐条抠 URL（响应是一个数组，元素顺序与请求顺序一致）
+  const urls = parseBatchResponse(text);
+  console.log(`解析出 ${urls.length} 条结果（请求 ${prepared.length} 条）`);
   console.log('');
 
   let ok = 0;
   prepared.forEach((entry, index) => {
-    const url = extractUrl(segments[index] ?? text);
+    const url = urls[index] || null;
     if (url) {
       ok += 1;
       let host = '';
@@ -173,10 +168,12 @@ async function main() {
         host = '(无法解析)';
       }
       console.log(`✅ [${entry.country}] → ${host}`);
+      console.log(`   标题：${String(entry.title).slice(0, 62)}`);
       console.log(`   ${truncate(url, 140)}`);
     } else {
       console.log(`❌ [${entry.country}] 没抠出 URL`);
-      if (opts.dump) console.log(`   [dump] ${truncate(segments[index] ?? text, 500)}`);
+      console.log(`   标题：${String(entry.title).slice(0, 62)}`);
+      if (opts.dump) console.log(`   [dump] ${truncate(text, 500)}`);
     }
   });
 
